@@ -620,7 +620,7 @@ function getPluginForm() {
                 setter.delete(player_real_name);
                 player.tell(PLUGIN_NAME + "§c不能覆盖到其他的领地.");
             } else {
-                let end = FloatPosToVector3(player.pos);
+                let end = FloatPosToVector3(player.pos).floor();
                 let start = setter.get(player_real_name);
                 if (start.dimensionId !== end.dimensionId) {
                     setter.delete(player_real_name);
