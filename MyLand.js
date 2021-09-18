@@ -5,7 +5,10 @@ var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
 // by: anseEND
 // 联系QQ: 2335607935
 
-var LAND_PRICE = 100;
+// 领地购买单价
+var LAND_BUY_PRICE = 100;
+// 领地卖出单价
+var LAND_SELL_PRICE = 100;
 
 class Vector3 {
 
@@ -299,6 +302,7 @@ class Form {
                     player.tell(PLUGIN_NAME + "§c无法跨维度圈地.");
                 } else {
                     Form.sendBuyLandForm(player, end);
+                    ender.set(player_real_name, end);
                 }
             }
         } else {
@@ -503,13 +507,12 @@ class Form {
                             });
                             break;
                         case 4:
-                            let money_count = land.getStartVector2().squared(land.getEndVector2()) * LAND_PRICE;
+                            let money_count = land.getStartVector2().squared(land.getEndVector2()) * LAND_SELL_PRICE;
                             player.sendModalForm("操作确认", "以 " + Math.floor(money_count) + " 块钱的价格卖出 " + land.getTitle() + " ?", "卖了换钱", "我再想想", function (player, bool) {
                                 if (bool === undefined) {
                                     return;
                                 }
                                 if (bool) {
-                                    let money_count = land.getStartVector2().squared(land.getEndVector2()) * LAND_PRICE;
                                     land.getFriends().forEach(function (friend_xuid, friend_name) {
                                         // @ts-ignore
                                         let friend = mc.getPlayer(friend_name);
@@ -575,23 +578,24 @@ class Form {
             return;
         }
         let start = setter.get(player_real_name);
+        let need_money = start.toVector2().squared(end.toVector2()) * LAND_BUY_PRICE;
+
         // @ts-ignore
         let simple = mc.newSimpleForm();
-        simple.setTitle("    §l购买这块地需要" + (start.toVector2().squared(end.toVector2()) * LAND_PRICE) + "块钱, 要买吗?   继续圈 ➦");
+        simple.setTitle("    §l购买这块地需要" + Math.floor(need_money) + "块钱, 要买吗?   继续圈 ➦");
         simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
         simple.addButton("我要购买", "textures/ui/MCoin");
         simple.addButton("§l取消圈地", "textures/ui/icon_trash");
 
         player.sendForm(simple, function (player, buttonId) {
+            let player_real_name = player.realName;
+            ender.delete(player_real_name);
             if (buttonId === undefined) {
                 return;
             }
-            let player_real_name = player.realName;
             let start = setter.get(player_real_name);
             switch (buttonId) {
                 case 0:
-                    let need_money = start.toVector2().squared(end.toVector2()) * LAND_PRICE;
-
                     let my_money = myMoney(player);
                     if (my_money >= need_money) {
                         let land_string = start.toStr() + "::" + end.toStr();
@@ -645,6 +649,10 @@ class Form {
  * @type {Map<string, Vector3>}
  */
 var setter = new Map();
+/**
+ * @type {Map<string, Vector3>}
+ */
+var ender = new Map();
 /**
  * @type {Map<string, Land>}
  */
@@ -751,6 +759,9 @@ function buildLandParticle() {
         let player = mc.getPlayer(player_real_name);
         if (player !== undefined) {
             let end = FloatPosToVector3(player.pos);
+            if (ender.has(player_real_name)) {
+                end = ender.get(player_real_name);
+            }
             let min_x = Math.min(start.getFloorX(), end.getFloorX());
             let max_x = Math.max(start.getFloorX(), end.getFloorX());
             let min_z = Math.min(start.getFloorZ(), end.getFloorZ());
@@ -813,9 +824,9 @@ registerEvent("onMove", function (player) {
 registerEvent("onPlaceBlock", function (player, block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
-    if (!hasPermission(player, blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId())) {
+    if (!hasPermissionByVector3(player, blockPosition)) {
         if (block.id !== 207) {
-            player.tell("§l§c停止, 这是 §f" + whoLand(blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId()) + "§c 的领地哦", 5);
+            player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
         }
         if (!isOp(player)) {
             return false;
@@ -826,8 +837,8 @@ registerEvent("onPlaceBlock", function (player, block) {
 registerEvent("onDestroyBlock", function (player, block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
-    if (!hasPermission(player, blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId())) {
-        player.tell("§l§c停止, 这是 §f" + whoLand(blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId()) + "§c 的领地哦", 5);
+    if (!hasPermissionByVector3(player, blockPosition)) {
+        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition)+ "§c 的领地哦", 5);
         if (!isOp(player)) {
             return false;
         }
@@ -842,8 +853,8 @@ registerEvent("onUseItemOn", function (player, item, block) {
     }
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
-    if (!hasPermission(player, blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId())) {
-        player.tell("§l§c停止, 这是 §f" + whoLand(blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId()) + "§c 的领地哦", 5);
+    if (!hasPermissionByVector3(player, blockPosition)) {
+        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
         if (!isOp(player)) {
             return false;
         }
@@ -853,8 +864,8 @@ registerEvent("onUseItemOn", function (player, item, block) {
 registerEvent("onUseFrameBlock", function (player, block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地展示框
-    if (!hasPermission(player, blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId())) {
-        player.tell("§l§c停止, 这是 §f" + whoLand(blockPosition.getFloorX(), blockPosition.getFloorZ(), blockPosition.getDimensionId()) + "§c 的领地哦", 5);
+    if (!hasPermissionByVector3(player, blockPosition)) {
+        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
         if (!isOp(player)) {
             return false;
         }
@@ -897,9 +908,49 @@ registerEvent("onRespawnAnchorExplode", function (intPos, player) {
     }
 });
 
+registerEvent("onOpenContainer", function (player, block) {
+    let blockPosition = FloatPosToVector3(block.pos);
+    // 保护他人领地容器
+    if (!hasPermissionByVector3(player, blockPosition)) {
+        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        if (!isOp(player)) {
+            return false;
+        }
+    }
+});
+
+registerEvent("onRide", function (player, entity) {
+    if (player.isPlayer()) {
+        let entityPosition = FloatPosToVector3(entity.pos);
+        // 保护他人领地坐骑
+        if (!hasPermissionByVector3(player, entityPosition)) {
+            player.tell("§l§c停止, 这是 §f" + whoLandByVector3(entityPosition) + "§c 的领地哦", 5);
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+    }
+});
+
+registerEvent("onBlockInteracted", function (player, block) {
+    let blockPosition = FloatPosToVector3(block.pos);
+    // 保护他人领地互交方块
+    if (!hasPermissionByVector3(player, blockPosition)) {
+        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        if (!isOp(player)) {
+            return false;
+        }
+    }
+});
+
 registerEvent("onWitherBossDestroy", function (entity, intPos, intPos2) {
     // 保护他人领地不被凋零破坏
     return false;
+});
+
+registerEvent("onLeft", function (player) {
+    // 离开游戏退出圈地模式
+    quitEnclosure(player);
 });
 
 function saveLandConfig() {
@@ -916,6 +967,7 @@ function quitEnclosure(player) {
         setter.delete(player_real_name);
         player.tell(PLUGIN_NAME + "§c你已退出圈地模式.");
     }
+    ender.delete(player_real_name);
 }
 
 /**
@@ -965,6 +1017,13 @@ function whoLand(x, z, dimensionId) {
 }
 
 /**
+ * @param {Vector3} vector3
+ */
+function whoLandByVector3(vector3) {
+    return whoLand(vector3.getFloorX(), vector3.getFloorZ(), vector3.dimensionId);
+}
+
+/**
  * @param {number} intX
  * @param {number} intZ
  * @param {number} dimensionId
@@ -999,6 +1058,14 @@ function hasPermission(player, x, z, dimensionId) {
         return landHashMap.get(land_string).hasPermission(player);
     }
     return true;
+}
+
+/**
+ * @param {any} player
+ * @param {Vector3} [vector3]
+ */
+function hasPermissionByVector3(player, vector3) {
+    return hasPermission(player, vector3.getFloorX(), vector3.getFloorZ(), vector3.dimensionId);
 }
 
 /**
