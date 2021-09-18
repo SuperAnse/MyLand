@@ -838,7 +838,7 @@ registerEvent("onDestroyBlock", function (player, block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
     if (!hasPermissionByVector3(player, blockPosition)) {
-        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition)+ "§c 的领地哦", 5);
+        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
         if (!isOp(player)) {
             return false;
         }
@@ -919,12 +919,13 @@ registerEvent("onOpenContainer", function (player, block) {
     }
 });
 
-registerEvent("onRide", function (player, entity) {
-    if (player.isPlayer()) {
+registerEvent("onRide", function (ride, entity) {
+    let player = ride.toPlayer();
+    if (player !== null) {
         let entityPosition = FloatPosToVector3(entity.pos);
         // 保护他人领地坐骑
         if (!hasPermissionByVector3(player, entityPosition)) {
-            player.tell("§l§c停止, 这是 §f" + whoLandByVector3(entityPosition) + "§c 的领地哦", 5);
+            player.tell("§l§c你不能 §f" + whoLandByVector3(entityPosition) + "§c 的领地中骑乘实体", 5);
             if (!isOp(player)) {
                 return false;
             }
