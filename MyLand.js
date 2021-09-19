@@ -449,13 +449,21 @@ class Form {
                                     // @ts-ignore
                                     let addFriendForm = mc.newCustomForm();
                                     addFriendForm.setTitle("添加共享");
-                                    addFriendForm.addInput("请输入玩家名字 ➦区分大小写注意空格", "", "");
+
+                                    let items = [];
+                                    // @ts-ignore
+                                    let allPlayer = mc.getOnlinePlayers();
+                                    for (let index = 0; index < allPlayer.length; index++) {
+                                        let online_player = allPlayer[index];
+                                        items[index] = online_player.realName;
+                                    }
+                                    addFriendForm.addDropdown("请选择玩家", items, 0);
 
                                     player.sendForm(addFriendForm, function (player, data) {
                                         if (data === undefined) {
                                             return;
                                         }
-                                        let friend_name = data[0];
+                                        let friend_name = items[data[0]];
                                         // @ts-ignore
                                         let newFriend = mc.getPlayer(friend_name);
                                         if (newFriend !== undefined) {
