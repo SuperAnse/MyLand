@@ -925,7 +925,7 @@ registerEvent("onRide", function (ride, entity) {
         let entityPosition = FloatPosToVector3(entity.pos);
         // 保护他人领地坐骑
         if (!hasPermissionByVector3(player, entityPosition)) {
-            player.tell("§l§c你不能 §f" + whoLandByVector3(entityPosition) + "§c 的领地中骑乘实体", 5);
+            player.tell("§l§c你不能在 §f" + whoLandByVector3(entityPosition) + "§c 的领地中骑乘实体", 5);
             if (!isOp(player)) {
                 return false;
             }
@@ -943,6 +943,18 @@ registerEvent("onBlockInteracted", function (player, block) {
         }
     }
 });
+
+registerEvent("onAttack", function (player, entity) {
+    let entityPosition = FloatPosToVector3(entity.pos);
+    // 保护他人领地坐骑
+    if (!hasPermissionByVector3(player, entityPosition)) {
+        player.tell("§l§c你不能在 §f" + whoLandByVector3(entityPosition) + "§c 的领地中发动攻击", 5);
+        if (!isOp(player)) {
+            return false;
+        }
+    }
+});
+
 
 registerEvent("onWitherBossDestroy", function (entity, intPos, intPos2) {
     // 保护他人领地不被凋零破坏
