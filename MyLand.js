@@ -946,7 +946,7 @@ registerEvent("onBlockInteracted", function (player, block) {
 
 registerEvent("onAttack", function (player, entity) {
     let entityPosition = FloatPosToVector3(entity.pos);
-    // 保护他人领地坐骑
+    // 保护他人领地生物
     if (!hasPermissionByVector3(player, entityPosition)) {
         player.tell("§l§c你不能在 §f" + whoLandByVector3(entityPosition) + "§c 的领地中发动攻击", 5);
         if (!isOp(player)) {
