@@ -84,6 +84,13 @@ class Vector3 {
     toStr() {
         return this.getFloorX() + ":" + this.getFloorY() + ":" + this.getFloorZ() + ":" + this.dimensionId;
     };
+
+    /**
+     * @param {Vector3} pos
+     */
+    equals(pos) {
+        return this.x == pos.x && this.y == pos.y && this.z == pos.z && this.dimensionId == pos.dimensionId;
+    }
 }
 
 class Vector2 {
@@ -141,21 +148,29 @@ class Land {
      * @param {Map<any, any>} data
      */
     constructor(land_string, data) {
+        /** @type {string} */
         this.land_string = land_string;
         let strings = land_string.split("::");
+        /** @type {Vector3} */
         this.start = toVector3(strings[0]);
+        /** @type {Vector3} */
         this.end = toVector3(strings[1]);
+        /** @type {boolean} */
+        this.open = data.get("open");
+        /** @type {string} */
         this.master = "" + data.get("master");
+        /** @type {string} */
         this.masterXuid = "" + data.get("masterXuid");
+        /** @type {string} */
         this.title = "" + data.get("title");
         this.friends = data.get("friends");
     }
 
     getData() {
         let map = {};
+        map["open"] = this.open;
         map["master"] = this.master;
         map["masterXuid"] = this.masterXuid;
-
         map["title"] = this.title;
         let friends_obj = Object.create(null);
         for (let [friends_key, friends_value] of this.friends) {
@@ -164,6 +179,15 @@ class Land {
         map["friends"] = friends_obj;
         return map;
     };
+
+    isOpen() {
+        return this.open;
+    }
+
+    /** @param {boolean} state */
+    setOpen(state) {
+        this.open = state;
+    }
 
     getLandString() {
         return this.land_string;
@@ -181,6 +205,9 @@ class Land {
         return this.master;
     };
 
+    /**
+     * @param {{ realName: string; xuid: string; }} player
+     */
     setMaster(player) {
         this.master = player.realName;
         this.masterXuid = player.xuid;
@@ -190,6 +217,9 @@ class Land {
         return this.title;
     };
 
+    /**
+     * @param {string} title
+     */
     setTitle(title) {
         this.title = title;
     };
@@ -198,6 +228,9 @@ class Land {
         return this.friends;
     };
 
+    /**
+     * @param {{ realName: any; xuid: any; }} player
+     */
     addFriend(player) {
         let player_real_name = player.realName;
         if (!this.friends.has(player_real_name)) {
@@ -205,12 +238,18 @@ class Land {
         }
     };
 
+    /**
+     * @param {any} player_real_name
+     */
     removeFriend(player_real_name) {
         if (this.friends.has(player_real_name)) {
             this.friends.delete(player_real_name)
         }
     };
 
+    /**
+     * @param {{ realName: any; xuid: any; }} player
+     */
     isMaster(player) {
         let player_real_name = player.realName;
         let player_xuid = player.xuid;
@@ -224,14 +263,14 @@ class Land {
     };
 
     /**
-     * @param {{ realName: any; xuid: any; }} player
+     * @param {any} player
      */
     isFriend(player) {
         let player_real_name = player.realName;
         let player_xuid = player.xuid;
         let hasFriend = false;
         let old_friend_name = undefined;
-        this.friends.forEach(function (friend_xuid, friend_name) {
+        this.friends.forEach(function (/** @type {any} */ friend_xuid, /** @type {any} */ friend_name) {
             if (player_xuid === friend_xuid) {
                 hasFriend = true;
                 if (player_real_name !== friend_name) {
@@ -269,7 +308,7 @@ class Land {
     };
 
     /**
-     * @param {{ realName: any; xuid: any; }} player
+     * @param {any} player
      */
     hasPermission(player) {
         if (this.isMaster(player)) {
@@ -313,7 +352,7 @@ class Form {
             simple.addButton("我的领地", "textures/ui/dressing_room_animation");
             simple.addButton("好友领地", "textures/ui/dressing_room_skins");
             simple.addButton("我要圈地", "textures/ui/icon_new");
-            player.sendForm(simple, function (player, buttonId) {
+            player.sendForm(simple, function (/** @type {{ realName: any; pos: any; tell: (arg0: string) => void; }} */ player, /** @type {any} */ buttonId) {
                 let player_real_name = player.realName;
                 if (buttonId === undefined) {
                     return;
@@ -352,7 +391,7 @@ class Form {
             simple.addButton(land.getTitle() + "\nMaster: " + land.getMaster(), "textures/ui/pointer");
             id += 1;
         });
-        player.sendForm(simple, function (player, buttonId) {
+        player.sendForm(simple, function (/** @type {{ teleport: (arg0: any, arg1: any, arg2: any, arg3: any) => void; tell: (arg0: string) => void; }} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -374,6 +413,7 @@ class Form {
         let simple = mc.newSimpleForm();
         simple.setTitle('我的领地');
         simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
+        /**  @type {Map<string, Land>} */
         let my_lands = new Map();
         let id = 0;
         for (let land of landHashMap.values()) {
@@ -384,7 +424,7 @@ class Form {
             }
         }
 
-        player.sendForm(simple, function (player, buttonId) {
+        player.sendForm(simple, function (/** @type {{ sendForm: (arg0: any, arg1: (player: any, buttonId: any) => void) => void; }} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -393,23 +433,40 @@ class Form {
                 // @ts-ignore
                 let formAdmin = mc.newSimpleForm();
                 formAdmin.setTitle("领地管理: " + land.getTitle());
+                // 切换状态
+                formAdmin.addButton("领地门禁", "textures/ui/" + (land.isOpen() ? "icon_unlocked" : "icon_lock"));
                 formAdmin.addButton("更改名字", "textures/ui/icon_fall");
                 formAdmin.addButton("回到领地", "textures/ui/pointer");
                 formAdmin.addButton("领地共享", "textures/ui/icon_multiplayer");
                 formAdmin.addButton("领地转让", "textures/ui/dressing_room_customization");
                 formAdmin.addButton("卖出领地", "textures/ui/storexblsignin");
 
-                player.sendForm(formAdmin, function (player, buttonId) {
+                player.sendForm(formAdmin, function (/** @type {{ sendForm: (arg0: any, arg1: { (player: any, data: any): void; (player: any, buttonId: any): void; (player: any, data: any): void; }) => void; teleport: (arg0: any, arg1: any, arg2: any, arg3: any) => void; tell: (arg0: string) => void; sendModalForm: (arg0: string, arg1: string, arg2: string, arg3: string, arg4: (player: any, bool: any) => void) => void; }} */ player, /** @type {any} */ buttonId) {
                     if (buttonId === undefined) {
                         return;
                     }
                     switch (buttonId) {
                         case 0:
+                            player.sendModalForm("领地门禁", "是否允许陌生人进入领地参观?", "允许", "拒绝", function (/** @type {any} */ player, /** @type {any} */ bool) {
+                                if (bool === undefined) {
+                                    return;
+                                }
+                                if (bool) {
+                                    land.setOpen(true);
+                                    player.tell(PLUGIN_NAME + "§a门禁已关闭! 将允许陌生人进入领地参观!");
+                                } else {
+                                    land.setOpen(false);
+                                    player.tell(PLUGIN_NAME + "§e门禁已打开! 将拒绝陌生人进入领地参观!");
+                                }
+                                land.saveLand();
+                            });
+                            break;
+                        case 1:
                             // @ts-ignore
                             let change = mc.newCustomForm();
                             change.setTitle("更改名字");
                             change.addInput("新的名字", "Home name", "");
-                            player.sendForm(change, function (player, data) {
+                            player.sendForm(change, function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {string[]} */ data) {
                                 if (data === undefined) {
                                     return;
                                 }
@@ -424,24 +481,24 @@ class Form {
                                 }
                             });
                             break;
-                        case 1:
+                        case 2:
                             let safe_spawn = land.getSafeSpawn();
                             player.teleport(safe_spawn.getFloorX(), safe_spawn.getFloorY(), safe_spawn.getFloorZ(), safe_spawn.getDimensionId());
                             player.tell(PLUGIN_NAME + "§f你来到了自己的§e " + land.getTitle() + " §f!");
                             break;
-                        case 2:
+                        case 3:
                             // @ts-ignore
                             let friendSystemForm = mc.newSimpleForm();
                             friendSystemForm.addButton("添加共享", "textures/ui/profile_new_look");
                             //todo
                             let myFriends = new Map();
                             let id = 0;
-                            land.getFriends().forEach(function (friend_xuid, friend_name) {
+                            land.getFriends().forEach(function (/** @type {any} */ friend_xuid, /** @type {any} */ friend_name) {
                                 friendSystemForm.addButton(friend_name, "textures/ui/warning_alex");
                                 myFriends.set(id, friend_name);
                                 id += 1;
                             });
-                            player.sendForm(friendSystemForm, function (player, buttonId) {
+                            player.sendForm(friendSystemForm, function (/** @type {{ sendForm: (arg0: any, arg1: (player: any, data: any) => void) => void; sendModalForm: (arg0: string, arg1: string, arg2: string, arg3: string, arg4: (player: any, bool: any) => void) => void; }} */ player, /** @type {number} */ buttonId) {
                                 if (buttonId === undefined) {
                                     return;
                                 }
@@ -459,7 +516,7 @@ class Form {
                                     }
                                     addFriendForm.addDropdown("请选择玩家", items, 0);
 
-                                    player.sendForm(addFriendForm, function (player, data) {
+                                    player.sendForm(addFriendForm, function (/** @type {{ tell: (arg0: string) => void; realName: string; }} */ player, /** @type {(string | number)[]} */ data) {
                                         if (data === undefined) {
                                             return;
                                         }
@@ -477,7 +534,7 @@ class Form {
                                     });
                                 } else {
                                     let friend_name = myFriends.get(buttonId - 1);
-                                    player.sendModalForm("操作确认", "不再共享给 " + friend_name + " ?", "踢了他", "点错了", function (player, bool) {
+                                    player.sendModalForm("操作确认", "不再共享给 " + friend_name + " ?", "踢了他", "点错了", function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {any} */ bool) {
                                         if (bool === undefined) {
                                             return;
                                         }
@@ -492,12 +549,12 @@ class Form {
                                 }
                             });
                             break;
-                        case 3:
+                        case 4:
                             // @ts-ignore
                             let make_over = mc.newCustomForm();
                             make_over.setTitle("领地转让");
                             make_over.addInput("请输入玩家名字 ➦区分大小写注意空格", "", "");
-                            player.sendForm(make_over, function (player, data) {
+                            player.sendForm(make_over, function (/** @type {{ tell: (arg0: string) => void; realName: string; }} */ player, /** @type {string[]} */ data) {
                                 if (data === undefined) {
                                     return;
                                 }
@@ -514,14 +571,14 @@ class Form {
                                 }
                             });
                             break;
-                        case 4:
+                        case 5:
                             let money_count = land.getStartVector2().squared(land.getEndVector2()) * LAND_SELL_PRICE;
-                            player.sendModalForm("操作确认", "以 " + Math.floor(money_count) + " 块钱的价格卖出 " + land.getTitle() + " ?", "卖了换钱", "我再想想", function (player, bool) {
+                            player.sendModalForm("操作确认", "以 " + Math.floor(money_count) + " 块钱的价格卖出 " + land.getTitle() + " ?", "卖了换钱", "我再想想", function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {any} */ bool) {
                                 if (bool === undefined) {
                                     return;
                                 }
                                 if (bool) {
-                                    land.getFriends().forEach(function (friend_xuid, friend_name) {
+                                    land.getFriends().forEach(function (/** @type {any} */ friend_xuid, /** @type {any} */ friend_name) {
                                         // @ts-ignore
                                         let friend = mc.getPlayer(friend_name);
                                         if (friend !== undefined) {
@@ -562,7 +619,7 @@ class Form {
                 id += 1;
             }
         });
-        player.sendForm(simple, function (player, buttonId) {
+        player.sendForm(simple, function (/** @type {{ teleport: (arg0: any, arg1: any, arg2: any, arg3: any) => void; tell: (arg0: string) => void; }} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -595,7 +652,7 @@ class Form {
         simple.addButton("我要购买", "textures/ui/MCoin");
         simple.addButton("§l取消圈地", "textures/ui/icon_trash");
 
-        player.sendForm(simple, function (player, buttonId) {
+        player.sendForm(simple, function (/** @type {{ realName: any; xuid: any; tell: (arg0: string) => void; sendForm: (arg0: any, arg1: (player: any, data: any) => void) => void; }} */ player, /** @type {any} */ buttonId) {
             let player_real_name = player.realName;
             ender.delete(player_real_name);
             if (buttonId === undefined) {
@@ -610,6 +667,7 @@ class Form {
 
                         let map = new Map();
                         map.set("title", "家");
+                        map.set("open", true);
                         map.set("master", player_real_name);
                         map.set("masterXuid", player.xuid);
                         map.set("friends", new Map());
@@ -624,7 +682,7 @@ class Form {
                         let change = mc.newCustomForm();
                         change.setTitle("恭喜! 圈地成功");
                         change.addInput("给你的新领地起个名字吧!", "Home name", player_real_name + "的新家");
-                        player.sendForm(change, function (player, data) {
+                        player.sendForm(change, function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {string[]} */ data) {
                             if (data === undefined) {
                                 return;
                             }
@@ -653,34 +711,35 @@ class Form {
     };
 }
 
-/**
- * @type {Map<string, Vector3>}
- */
+/** @type {Map<string, Vector3>} */
+var MOVE_CHACK_MAP = new Map();
+/** @type {Map<string, Vector3>} */
 var setter = new Map();
-/**
- * @type {Map<string, Vector3>}
- */
+/** @type {Map<string, Vector3>} */
 var ender = new Map();
-/**
- * @type {Map<string, Land>}
- */
+/** @type {Map<string, Land>} */
 var landHashMap = new Map();
 // 玩家是否进入某个领地
 var playerInLand = new Map();
-/**
- * @type {Map<string, number>}
- */
+/** @type {Map<string, number>} */
 var tipDelay = new Map();
 
+/** @param {any} player */
 function isOp(player) {
     return player.permLevel == 1;
 }
 
+/** @param {string} message */
 function info(message) {
     // @ts-ignore
     log("[MyLand] " + message);
 }
 
+/**
+ * @param {string} player_real_name
+ * @param {string} messageOne
+ * @param {string} messageTwo
+ */
 function sendTitle(player_real_name, messageOne, messageTwo) {
     // @ts-ignore
     mc.runcmd('title \"' + player_real_name + '\" title ' + messageOne);
@@ -696,6 +755,14 @@ function onEnable() {
         let map = new Map();
         let landData = load[land_string];
         map.set("title", landData.title);
+
+        // 默认兼容开启状态
+        let open = landData.open;
+        if (open === undefined) {
+            open = true;
+        }
+
+        map.set("open", open);
         map.set("master", landData.master);
         map.set("masterXuid", landData.masterXuid);
         let friends_map = new Map();
@@ -707,12 +774,12 @@ function onEnable() {
     }
     info("领地数据读取完毕...");
     // @ts-ignore
-    mc.regPlayerCmd("land", "领地指令.", function (player, args) {
+    mc.regPlayerCmd("land", "领地指令.", function (/** @type {any} */ player, /** @type {any} */ args) {
         Form.sendLandForm(player);
         return false;
     });
     // @ts-ignore
-    mc.regPlayerCmd("landlist", "领地列表.", function (player, args) {
+    mc.regPlayerCmd("landlist", "领地列表.", function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {any} */ args) {
         //todo
         if (isOp(player)) {
             Form.sendLandListForm(player);
@@ -722,12 +789,12 @@ function onEnable() {
         return false;
     });
     // @ts-ignore
-    mc.regPlayerCmd("myland", "我的领地.", function (player, args) {
+    mc.regPlayerCmd("myland", "我的领地.", function (/** @type {any} */ player, /** @type {any} */ args) {
         Form.sendMyLandsForm(player);
         return false;
     });
     // @ts-ignore
-    mc.regPlayerCmd("removeland", "删除脚下领地.", function (player, args) {
+    mc.regPlayerCmd("removeland", "删除脚下领地.", function (/** @type {{ pos: any; tell: (arg0: string) => void; }} */ player, /** @type {any} */ args) {
         if (isOp(player)) {
             let playerPos = FloatPosToVector3(player.pos);
             let land_string = getLandString(playerPos.getFloorX(), playerPos.getFloorZ(), playerPos.getDimensionId());
@@ -748,13 +815,68 @@ function onEnable() {
 
 function onUpdate() {
     buildLandParticle();
-    for (let player_real_name of tipDelay.keys()) {
-        let delay = tipDelay.get(player_real_name);
-        if (delay !== undefined) {
-            if (delay > 0) {
-                tipDelay.set(player_real_name, delay - 1);
-            } else {
-                tipDelay.delete(player_real_name);
+    // @ts-ignore
+    let allPlayer = mc.getOnlinePlayers();
+    for (let index = 0; index < allPlayer.length; index++) {
+        let hasUpdate = true;
+        let player = allPlayer[index];
+        let player_real_name = player.realName;
+        let playerPosition = FloatPosToVector3(player.pos);
+        let land_string = getLandString(playerPosition.getFloorX(), playerPosition.getFloorZ(), playerPosition.getDimensionId());
+        if (land_string !== null) {
+            let land = landHashMap.get(land_string);
+            if (land !== undefined) {
+                let haulBack = false;
+                if (!land.isOpen()) {
+                    // 拉回
+                    if (!land.hasPermission(player)) {
+                        let old = MOVE_CHACK_MAP.get(player_real_name);
+                        if (old !== undefined) {
+                            // 防止被囚禁
+                            let check = getLandString(old.getFloorX(), old.getFloorZ(), old.getDimensionId());
+                            if (check === null) {
+                                player.teleport(old.x, old.y, old.z, old.dimensionId);
+                                player.tell("§c你无法进入 §f" + land.getMaster() + " §c的领地", 5);
+                                haulBack = true;
+                            }
+                        }
+                        hasUpdate = false;
+                    }
+                }
+                if (!haulBack) {
+                    let delay = tipDelay.get(player_real_name);
+                    if (!playerInLand.has(player_real_name) || playerInLand.get(player_real_name) !== land) {
+                        player.tell("§e你进入了 §f" + land.getMaster() + " §e的领地", 5);
+                        playerInLand.set(player_real_name, land);
+                        if (delay === undefined || delay < 7) {
+                            tipDelay.set(player_real_name, 7);
+                        }
+                    } else {
+                        if (delay === undefined) {
+                            player.tell("§l" + (land.hasPermission(player) ? "§7" : "§e") + land.getTitle(), 5);
+                        }
+                    }
+                    if (delay !== undefined) {
+                        if (delay > 0) {
+                            tipDelay.set(player_real_name, delay - 1);
+                        } else {
+                            tipDelay.delete(player_real_name);
+                        }
+                    }
+                }
+            }
+        } else if (playerInLand.has(player_real_name)) {
+            let land = playerInLand.get(player_real_name);
+            if (land !== undefined) {
+                player.tell("§7你离开了 §f" + land.getMaster() + " §7的领地", 5);
+                playerInLand.delete(player_real_name);
+            }
+        }
+        // 更新位置, 以便获取可拉回位置
+        if (hasUpdate) {
+            let old = MOVE_CHACK_MAP.get(player_real_name);
+            if (old === undefined || !old.equals(playerPosition)) {
+                MOVE_CHACK_MAP.set(player_real_name, playerPosition);
             }
         }
     }
@@ -799,37 +921,9 @@ function buildLandParticle() {
 function registerEvent(event, v) {
     // @ts-ignore
     mc.listen(event, v);
-    info("RegisterEvent: \"" + event + "\"");
 }
 
-registerEvent("onMove", function (player) {
-    let player_real_name = player.realName;
-    let playerPosition = FloatPosToVector3(player.pos);
-    let land_string = getLandString(playerPosition.getFloorX(), playerPosition.getFloorZ(), playerPosition.getDimensionId());
-    if (land_string !== null) {
-        let land = landHashMap.get(land_string);
-        let delay = tipDelay.get(player_real_name);
-        if (!playerInLand.has(player_real_name) || playerInLand.get(player_real_name) !== land) {
-            player.tell("§e你进入了 §f" + land.getMaster() + " §e的领地", 5);
-            playerInLand.set(player_real_name, land);
-            if (delay === undefined || delay < 7) {
-                tipDelay.set(player_real_name, 7);
-            }
-        } else {
-            if (delay === undefined) {
-                player.tell("§l" + (land.hasPermission(player) ? "§7" : "§e") + land.getTitle(), 5);
-            }
-        }
-    } else if (playerInLand.has(player_real_name)) {
-        let land = playerInLand.get(player_real_name);
-        if (land !== undefined) {
-            player.tell("§7你离开了 §f" + land.getMaster() + " §7的领地", 5);
-            playerInLand.delete(player_real_name);
-        }
-    }
-});
-
-registerEvent("onPlaceBlock", function (player, block) {
+registerEvent("onPlaceBlock", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; id: number; }} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
     if (!hasPermissionByVector3(player, blockPosition)) {
@@ -842,7 +936,7 @@ registerEvent("onPlaceBlock", function (player, block) {
     }
 });
 
-registerEvent("onDestroyBlock", function (player, block) {
+registerEvent("onDestroyBlock", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
     if (!hasPermissionByVector3(player, blockPosition)) {
@@ -853,7 +947,7 @@ registerEvent("onDestroyBlock", function (player, block) {
     }
 });
 
-registerEvent("onUseItemOn", function (player, item, block) {
+registerEvent("onUseItemOn", function (/** @type {{ realName: any; tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {any} */ item, /** @type {{ pos: any; }} */ block) {
     // todo
     let player_real_name = player.realName;
     if (setter.has(player_real_name)) {
@@ -869,7 +963,7 @@ registerEvent("onUseItemOn", function (player, item, block) {
     }
 });
 
-registerEvent("onUseFrameBlock", function (player, block) {
+registerEvent("onUseFrameBlock", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地展示框
     if (!hasPermissionByVector3(player, blockPosition)) {
@@ -880,7 +974,7 @@ registerEvent("onUseFrameBlock", function (player, block) {
     }
 });
 
-registerEvent("onLiquidFlow", function (block, intPos) {
+registerEvent("onLiquidFlow", function (/** @type {{ pos: any; }} */ block, /** @type {{ x: number; z: number; dimid: number; }} */ intPos) {
     let blockPosition = FloatPosToVector3(block.pos);
     let from_land_string = whoLand(Math.floor(blockPosition.x), Math.floor(blockPosition.z), blockPosition.getDimensionId());
     let to_land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
@@ -892,7 +986,7 @@ registerEvent("onLiquidFlow", function (block, intPos) {
     }
 });
 
-registerEvent("onFireSpread", function (intPos) {
+registerEvent("onFireSpread", function (/** @type {{ x: number; z: number; dimid: number; }} */ intPos) {
     let land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
     // 保护他人领地不被烧毁
     if (land_string !== null) {
@@ -900,7 +994,7 @@ registerEvent("onFireSpread", function (intPos) {
     }
 });
 
-registerEvent("onExplode", function (entity, floatPos, power, range, isDestroy, isFire) {
+registerEvent("onExplode", function (/** @type {any} */ entity, /** @type {{ x: number; z: number; dimid: number; }} */ floatPos, /** @type {any} */ power, /** @type {any} */ range, /** @type {any} */ isDestroy, /** @type {any} */ isFire) {
     // 保护他人领地不被实体炸毁
     let master = getNearLand(Math.floor(floatPos.x), Math.floor(floatPos.z), floatPos.dimid);
     if (master !== undefined) {
@@ -908,7 +1002,7 @@ registerEvent("onExplode", function (entity, floatPos, power, range, isDestroy, 
     }
 });
 
-registerEvent("onRespawnAnchorExplode", function (intPos, player) {
+registerEvent("onRespawnAnchorExplode", function (/** @type {{ x: number; z: number; dimid: number; }} */ intPos, /** @type {any} */ player) {
     // 保护他人领地不被重生锚炸毁
     let master = getNearLand(intPos.x, intPos.z, intPos.dimid);
     if (master !== undefined) {
@@ -916,7 +1010,7 @@ registerEvent("onRespawnAnchorExplode", function (intPos, player) {
     }
 });
 
-registerEvent("onOpenContainer", function (player, block) {
+registerEvent("onOpenContainer", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地容器
     if (!hasPermissionByVector3(player, blockPosition)) {
@@ -927,7 +1021,7 @@ registerEvent("onOpenContainer", function (player, block) {
     }
 });
 
-registerEvent("onRide", function (ride, entity) {
+registerEvent("onRide", function (/** @type {{ toPlayer: () => any; }} */ ride, /** @type {{ pos: any; }} */ entity) {
     let player = ride.toPlayer();
     if (player !== null) {
         let entityPosition = FloatPosToVector3(entity.pos);
@@ -941,7 +1035,7 @@ registerEvent("onRide", function (ride, entity) {
     }
 });
 
-registerEvent("onBlockInteracted", function (player, block) {
+registerEvent("onBlockInteracted", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地互交方块
     if (!hasPermissionByVector3(player, blockPosition)) {
@@ -952,7 +1046,7 @@ registerEvent("onBlockInteracted", function (player, block) {
     }
 });
 
-registerEvent("onAttack", function (player, entity) {
+registerEvent("onAttack", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ entity) {
     let entityPosition = FloatPosToVector3(entity.pos);
     // 保护他人领地生物
     if (!hasPermissionByVector3(player, entityPosition)) {
@@ -964,12 +1058,12 @@ registerEvent("onAttack", function (player, entity) {
 });
 
 
-registerEvent("onWitherBossDestroy", function (entity, intPos, intPos2) {
+registerEvent("onWitherBossDestroy", function (/** @type {any} */ entity, /** @type {any} */ intPos, /** @type {any} */ intPos2) {
     // 保护他人领地不被凋零破坏
     return false;
 });
 
-registerEvent("onLeft", function (player) {
+registerEvent("onLeft", function (/** @type {any} */ player) {
     // 离开游戏退出圈地模式
     quitEnclosure(player);
 });
@@ -982,6 +1076,9 @@ function saveLandConfig() {
     CONFIG.write(JSON.stringify(obj, null, "\t"));
 }
 
+/**
+ * @param {{ realName: any; tell: (arg0: string) => void; }} player
+ */
 function quitEnclosure(player) {
     let player_real_name = player.realName;
     if (setter.has(player_real_name)) {
@@ -1068,7 +1165,7 @@ function getNearLand(intX, intZ, dimensionId) {
 }
 
 /**
- * @param {{ realName: any; xuid: any; }} player
+ * @param {any} player
  * @param {number} [x]
  * @param {number} [z]
  * @param {number} [dimensionId]
@@ -1090,7 +1187,7 @@ function hasPermissionByVector3(player, vector3) {
 }
 
 /**
- * @param {{ realName: any; pos: any; }} player
+ * @param {any} player
  */
 function isOverlap(player) {
     let player_real_name = player.realName;
@@ -1110,11 +1207,17 @@ function isOverlap(player) {
     return false;
 }
 
+/**
+ * @param {string} str
+ */
 function toVector3(str) {
     let strings = str.split(":");
     return new Vector3(parseFloat(strings[0]), parseFloat(strings[1]), parseFloat(strings[2]), parseInt(strings[3]));
 }
 
+/**
+ * @param {{ x: number; y: number; z: number; dimid: number; }} floatPos
+ */
 function FloatPosToVector3(floatPos) {
     if (floatPos === undefined) {
         return new Vector3(0, 0, 0, 0);
@@ -1122,16 +1225,25 @@ function FloatPosToVector3(floatPos) {
     return new Vector3(floatPos.x, floatPos.y, floatPos.z, floatPos.dimid);
 }
 
+/** @param {any} player */
 function myMoney(player) {
     // @ts-ignore
     return money.get(player.xuid);
 }
 
+/**
+ * @param {any} player
+ * @param {number} value
+ */
 function addMoney(player, value) {
     // @ts-ignore
     money.add(player.xuid, Math.floor(value));
 }
 
+/**
+ * @param {any} player
+ * @param {number} value
+ */
 function reduceMoney(player, value) {
     // @ts-ignore
     money.reduce(player.xuid, Math.floor(value));
