@@ -10,7 +10,7 @@ var LAND_BUY_PRICE = 100;
 // 领地卖出单价
 var LAND_SELL_PRICE = 100;
 // 领地边界方块名字
-var BORDER_BLOCK_NAME = "stone";
+var BORDER_BLOCK_NAME = "red_flower";
 // 每人领地数量限制, 小于等于0是无限制
 var PLAYER_MAX_LAND_COUNT = -1;
 
