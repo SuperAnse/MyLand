@@ -827,7 +827,7 @@ function onUpdate() {
             let land = landHashMap.get(land_string);
             if (land !== undefined) {
                 let haulBack = false;
-                if (!land.isOpen()) {
+                if (!land.isOpen() && !isOp(player)) {
                     // 拉回
                     if (!land.hasPermission(player)) {
                         let old = MOVE_CHACK_MAP.get(player_real_name);
