@@ -9,6 +9,8 @@ var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
 var LAND_BUY_PRICE = 100;
 // 领地卖出单价
 var LAND_SELL_PRICE = 100;
+// 领地边界方块名字
+var BORDER_BLOCK_NAME = "stone";
 
 class Vector3 {
 
@@ -320,6 +322,64 @@ class Land {
     saveLand() {
         saveLandConfig();
     };
+
+    /**
+     * 
+     * @param {any} intPos 
+     */
+    setBorderBlock(intPos) {
+        // @ts-ignore
+        let player = mc.getPlayer(this.master);
+        if (player !== null) {
+            let command = "setblock " + intPos.x + " " + intPos.y + " " + intPos.z + " " + BORDER_BLOCK_NAME;
+            // @ts-ignore
+            mc.runcmd("execute \"" + player.realName + "\" ~ ~ ~ " + command)
+        }
+    }
+
+    generateBorder() {
+        let dimension = this.start.dimensionId;
+        let min_x = Math.min(this.start.getFloorX(), this.end.getFloorX());
+        let max_x = Math.max(this.start.getFloorX(), this.end.getFloorX());
+        let min_z = Math.min(this.start.getFloorZ(), this.end.getFloorZ());
+        let max_z = Math.max(this.start.getFloorZ(), this.end.getFloorZ());
+        let y = Math.max(this.start.getFloorY(), this.end.getFloorY());
+        for (let x = min_x; x <= max_x; x++) {
+            this.setBorderBlock(this.safePos(x, y, min_z, dimension));
+            this.setBorderBlock(this.safePos(x, y, max_z, dimension));
+        }
+        for (let z = min_z; z <= max_z; z++) {
+            this.setBorderBlock(this.safePos(min_x, y, z, dimension));
+            this.setBorderBlock(this.safePos(max_x, y, z, dimension));
+        }
+    }
+
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     * @param {number} dimension 
+     * @returns 
+     */
+    safePos(x, y, z, dimension) {
+        // @ts-ignore
+        let blockPos = mc.newIntPos(x, y, z, dimension);
+        for (let i = y + 12; i > -64; i--) {
+            // @ts-ignore
+            let block = mc.getBlock(x, i, z, dimension);
+            if (block.id != 0) {
+                let findY = i;
+                if(block.name.indexOf(BORDER_BLOCK_NAME) != -1){
+                    findY = i + 1;
+                }
+                // @ts-ignore
+                blockPos = mc.newIntPos(x, findY, z, dimension);
+                break;
+            }
+        }
+        return blockPos;
+    }
 }
 
 class Form {
@@ -898,13 +958,13 @@ function buildLandParticle() {
             let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
             let y = start.getFloorY();
             let dimensionId = start.getDimensionId();
-            for (let x = min_x; x < max_x; x++) {
+            for (let x = min_x; x <= max_x; x++) {
                 // @ts-ignore
                 mc.spawnParticle(x + 0.5, y + 0.2, min_z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
                 // @ts-ignore
                 mc.spawnParticle(x + 0.5, y + 0.2, max_z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
             }
-            for (let z = min_z; z < max_z; z++) {
+            for (let z = min_z; z <= max_z; z++) {
                 // @ts-ignore
                 mc.spawnParticle(min_x + 0.5, y + 0.2, z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
                 // @ts-ignore
@@ -1093,8 +1153,10 @@ function quitEnclosure(player) {
  * @param {Map<any, any>} data
  */
 function createLand(land_string, data) {
-    landHashMap.set(land_string, new Land(land_string, data));
+    let land = new Land(land_string, data);
+    landHashMap.set(land_string, land);
     saveLandConfig();
+    land.generateBorder();
 }
 
 /**
