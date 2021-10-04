@@ -11,6 +11,8 @@ var LAND_BUY_PRICE = 100;
 var LAND_SELL_PRICE = 100;
 // 领地边界方块名字
 var BORDER_BLOCK_NAME = "stone";
+// 每人领地数量限制, 小于等于0是无限制
+var PLAYER_MAX_LAND_COUNT = -1;
 
 class Vector3 {
 
@@ -369,9 +371,9 @@ class Land {
             // @ts-ignore
             let block = mc.getBlock(x, i, z, dimension);
             if (block.id != 0) {
-                let findY = i;
-                if(block.name.indexOf(BORDER_BLOCK_NAME) != -1){
-                    findY = i + 1;
+                let findY = i + 1;
+                if (block.name.indexOf(BORDER_BLOCK_NAME) != -1) {
+                    findY = i;
                 }
                 // @ts-ignore
                 blockPos = mc.newIntPos(x, findY, z, dimension);
@@ -390,6 +392,19 @@ class Form {
     static sendLandForm(player) {
         let player_real_name = player.realName;
         if (setter.has(player_real_name)) {
+            if (PLAYER_MAX_LAND_COUNT > 0) {
+                let count = 0;
+                for (let land of landHashMap.values()) {
+                    if (land.isMaster(player)) {
+                        count += 1;
+                    }
+                }
+                if (count >= PLAYER_MAX_LAND_COUNT) {
+                    setter.delete(player_real_name);
+                    player.tell(PLUGIN_NAME + "§c每人只能拥有 §f" + PLAYER_MAX_LAND_COUNT + "§c 块领地!");
+                    return;
+                }
+            }
             if (isOverlap(player)) {
                 setter.delete(player_real_name);
                 player.tell(PLUGIN_NAME + "§c不能覆盖到其他的领地.");
@@ -404,6 +419,7 @@ class Form {
                     ender.set(player_real_name, end);
                 }
             }
+
         } else {
             // @ts-ignore
             let simple = mc.newSimpleForm();
