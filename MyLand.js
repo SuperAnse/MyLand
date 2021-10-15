@@ -14,6 +14,110 @@ var BORDER_BLOCK_NAME = "red_flower";
 // 每人领地数量限制, 小于等于0是无限制
 var PLAYER_MAX_LAND_COUNT = -1;
 
+var PROMPT = {
+    DEFAULT_LAND_NAME: "家",
+    NEED_SET_START_POS: "§c你需要设置起点.",
+    SETTING_CONFIRM: "操作确认",
+    SETTING_CANCE: "§f操作取消!",
+    CANCE_INTERACTION: "§l§c停止, 这是§f %MASTER §c的领地哦",
+    CANCE_RIDE: "§l§c你不能在§f %MASTER §c的领地中骑乘",
+    CANCE_ATTACK: "§l§c你不能在§f %MASTER §c的领地中发动攻击",
+    MAX_LAND_COUNT: "§c每人只能拥有§f " + PLAYER_MAX_LAND_COUNT + " §c块领地!",
+    LAND_OVERLAP: "§c不能覆盖到其他的领地.",
+    DIMENSION_ERROR: "§c无法跨维度圈地.",
+    STATR_ENCLOSURE: "§a你已进入圈地模式.",
+    END_ENCLOSURE: "§c你已退出圈地模式.",
+    WALK_IN: "§e你进入了§f %MASTER §e的领地",
+    WALK_OUT: "§7你离开了§f %MASTER §7的领地",
+    TELEPORT_IN: "§f你来到了§e %MASTER §f的§e %LAND_TITLE §f!",
+    REFUSED_WALK_IN: "§c你无法进入§f %MASTER §c的领地",
+    YOUR_MONEY: "你的钱数: %MONEY",
+    TITLE_SYSTEM: "领地系统",
+    TITLE_MY_LAND: "我的领地",
+    TITLE_FRIEND_LAND: "好友领地",
+    TITLE_ENCLOSURE: "我要圈地",
+    TITLE_ALL_LAND: "全部领地",
+    SUBTITLE_TITLE_LAND: "领地管理: %LAND_TITLE",
+    SUBTITLE_TITLE_DOOR: "领地门禁",
+    SUBTITLE_TITLE_RENAME: "更改名字",
+    SUBTITLE_TITLE_TELEPORT: "回到领地",
+    SUBTITLE_TITLE_FRIEND: "领地共享",
+    SUBTITLE_TITLE_TRANSFER: "领地转让",
+    SUBTITLE_TITLE_SELL: "卖出领地",
+    SETTING_DOOR_TITLE: "领地门禁",
+    SETTING_DOOR_CONTENT: "是否允许陌生人进入领地参观?",
+    SETTING_DOOR_TRUE: "允许",
+    SETTING_DOOR_FALSE: "拒绝",
+    SETTING_DOOR_OPEN: "§a门禁已关闭! 将允许陌生人进入领地参观!",
+    SETTING_DOOR_CLOSE: "§e门禁已打开! 将拒绝陌生人进入领地参观!",
+    SETTING_RENAME_TITLE: "更改名字",
+    SETTING_RENAME_INPUT: "新的名字",
+    SETTING_RENAME_SUCCESSFUL: "§f领地§e %OLD_LAND_TITLE §f改名为§e %NEW_LAND_TITLE§f!",
+    SETTING_RENAME_FAILURE: "§c领地名不可为空!",
+    SETTING_TELEPORT: "§f你来到了自己的§e %LAND_TITLE §f!",
+    SETTING_ADD_FRIEND: "添加共享",
+    SETTING_ADD_FRIEND_SELECT_PLAYER: "请选择玩家",
+    SETTING_ADD_FRIEND_SUCCESSFUL_PLAYER: "§f玩家§e %NEW_FRIEND_NAME §f可以用你的§e %LAND_TITLE §f领地了!",
+    SETTING_ADD_FRIEND_SUCCESSFUL_TARGET: "§f玩家§e %PLAYER_NAME §f给你了他的§e %LAND_TITLE §f领地使用权限!",
+    SETTING_ADD_FRIEND_FAILURE: "§c玩家§e %FRIEND_NAME §c必须在线!",
+    SETTING_DEL_FRIEND_CONTENT: "不再共享给 %FRIEND_NAME ?",
+    SETTING_DEL_FRIEND_TRUE: "踢了他",
+    SETTING_DEL_FRIEND_FALSE: "点错了",
+    SETTING_DEL_FRIEND_SUCCESSFUL: "§f已将§e %FRIEND_NAME §f从你的§e %LAND_TITLE §f领地中踢出!",
+    SETTING_MAKE_OVER_TITLE: "领地转让",
+    SETTING_MAKE_OVER_INPUT: "请输入玩家名字 ➦区分大小写注意空格",
+    SETTING_MAKE_OVER_SUCCESSFUL_PLAYER: "§f你成功将你的§e %LAND_TITLE §f领地送给了玩家§e %TARGET_NAME §f!",
+    SETTING_MAKE_OVER_SUCCESSFUL_TARGET: "§f玩家§e %PLAYER_NAME §f将Ta的§e %LAND_TITLE §f领地送给了你!",
+    SETTING_MAKE_OVER_FAILURE: "§c玩家§e %TARGET_NAME §c必须在线!",
+    SETTING_SELL_CONTENT: "以 %MONEY 块钱的价格卖出 %LAND_TITLE ?",
+    SETTING_SELL_TRUE: "卖了换钱",
+    SETTING_SELL_FALSE: "我再想想",
+    SETTING_SELL_SUCCESSFUL_PLAYER: "§f领地已卖出, 获得§e %MONEY §f块钱!",
+    SETTING_SELL_SUCCESSFUL_FRIEND: "§f你的朋友§e %MASTER_NAME §f将Ta的§e %LAND_TITLE §f领地卖掉了",
+    BUY_LAND_TITLE: "    §l购买这块地需要 %MONEY 块钱, 要买吗?   继续圈 ➦",
+    BUY_LAND_BUY: "我要购买",
+    BUY_LAND_CANCE: "§l取消圈地",
+    BUY_LAND_SUCCESSFUL: "§a圈地成功, 共花费了§c %MONEY §a块钱.",
+    BUY_LAND_FAILURE: "§c你的钱不够.",
+    RENAME_NEW_LAND_TITLE: "恭喜! 圈地成功",
+    RENAME_NEW_LAND_INPUT: "给你的新领地起个名字吧!",
+    DEFAULT_RENAME_NEW_LAND_NAME: "The house of %MASTER",
+    RENAME_NEW_LAND_SUCCESSFUL: "§f新的领地命名为§e %LAND_TITLE §f!",
+    RENAME_NEW_LAND_FAILURE: "§c领地名不可为空!",
+    COMMAND_REMOVE_LAND_SUCCESSFUL: "§a已将脚下的领地删除.",
+    COMMAND_REMOVE_LAND_FAILURE: "§c你的脚下并没有领地.",
+    COMMAND_NOT_ADMIN: "§c你不是管理员.",
+    SEND_ENCLOSURE_TITLE: "§l§e-== §f设置领地范围 §e==-",
+    SEND_ENCLOSURE_SUBTITLE_TITLE: "§l§f点击地面进行(以自身位置判断)§e下一步§f操作"
+}
+
+class Tools {
+
+    /**
+     * @param {any} player 
+     * @param {string} message 
+     */
+    static sendMessage(player, message){
+        player.tell(PLUGIN_NAME + message);
+    }
+
+    /**
+     * @param {any} player 
+     * @param {string} message 
+     */
+    static sendPopup(player, message){
+        player.tell(message, 4);
+    }
+
+    /**
+     * @param {any} player 
+     * @param {string} message 
+     */
+    static sendTip(player, message){
+        player.tell(message, 5);
+    }
+};
+
 class Vector3 {
 
     /**
@@ -210,7 +314,7 @@ class Land {
     };
 
     /**
-     * @param {{ realName: string; xuid: string; }} player
+     * @param {any} player
      */
     setMaster(player) {
         this.master = player.realName;
@@ -233,7 +337,7 @@ class Land {
     };
 
     /**
-     * @param {{ realName: any; xuid: any; }} player
+     * @param {any} player
      */
     addFriend(player) {
         let player_real_name = player.realName;
@@ -252,7 +356,7 @@ class Land {
     };
 
     /**
-     * @param {{ realName: any; xuid: any; }} player
+     * @param {any} player
      */
     isMaster(player) {
         let player_real_name = player.realName;
@@ -401,19 +505,19 @@ class Form {
                 }
                 if (count >= PLAYER_MAX_LAND_COUNT) {
                     setter.delete(player_real_name);
-                    player.tell(PLUGIN_NAME + "§c每人只能拥有 §f" + PLAYER_MAX_LAND_COUNT + "§c 块领地!");
+                    Tools.sendMessage(player, PROMPT.MAX_LAND_COUNT);
                     return;
                 }
             }
             if (isOverlap(player)) {
                 setter.delete(player_real_name);
-                player.tell(PLUGIN_NAME + "§c不能覆盖到其他的领地.");
+                Tools.sendMessage(player, PROMPT.LAND_OVERLAP);
             } else {
                 let end = FloatPosToVector3(player.pos).floor();
                 let start = setter.get(player_real_name);
                 if (start.dimensionId !== end.dimensionId) {
                     setter.delete(player_real_name);
-                    player.tell(PLUGIN_NAME + "§c无法跨维度圈地.");
+                    Tools.sendMessage(player, PROMPT.DIMENSION_ERROR);
                 } else {
                     Form.sendBuyLandForm(player, end);
                     ender.set(player_real_name, end);
@@ -423,12 +527,12 @@ class Form {
         } else {
             // @ts-ignore
             let simple = mc.newSimpleForm();
-            simple.setTitle('领地系统');
-            simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
-            simple.addButton("我的领地", "textures/ui/dressing_room_animation");
-            simple.addButton("好友领地", "textures/ui/dressing_room_skins");
-            simple.addButton("我要圈地", "textures/ui/icon_new");
-            player.sendForm(simple, function (/** @type {{ realName: any; pos: any; tell: (arg0: string) => void; }} */ player, /** @type {any} */ buttonId) {
+            simple.setTitle(PROMPT.TITLE_SYSTEM);
+            simple.setContent(PROMPT.YOUR_MONEY.replace("%MONEY", "" + parseInt(myMoney(player))));
+            simple.addButton(PROMPT.TITLE_MY_LAND, "textures/ui/dressing_room_animation");
+            simple.addButton(PROMPT.TITLE_FRIEND_LAND, "textures/ui/dressing_room_skins");
+            simple.addButton(PROMPT.TITLE_ENCLOSURE, "textures/ui/icon_new");
+            player.sendForm(simple, function (/** @type {any} */ player, /** @type {any} */ buttonId) {
                 let player_real_name = player.realName;
                 if (buttonId === undefined) {
                     return;
@@ -442,8 +546,8 @@ class Form {
                         break;
                     case 2:
                         setter.set(player_real_name, FloatPosToVector3(player.pos).floor());
-                        player.tell(PLUGIN_NAME + "§a你已进入圈地模式.");
-                        sendTitle(player_real_name, "§l§e-== §f设置领地范围 §e==-", "§l§f点击地面进行(以自身位置判断)§e下一步§f操作");
+                        Tools.sendMessage(player, PROMPT.STATR_ENCLOSURE);
+                        sendTitle(player_real_name, PROMPT.SEND_ENCLOSURE_TITLE, PROMPT.SEND_ENCLOSURE_SUBTITLE_TITLE);
                         break;
                     default:
                         break;
@@ -458,8 +562,8 @@ class Form {
     static sendLandListForm(player) {
         // @ts-ignore
         let simple = mc.newSimpleForm();
-        simple.setTitle('全部领地');
-        simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
+        simple.setTitle(PROMPT.TITLE_ALL_LAND);
+        simple.setContent(PROMPT.YOUR_MONEY.replace("%MONEY", "" + parseInt(myMoney(player))));
         let my_lands = new Map();
         let id = 0;
         landHashMap.forEach(function (land, landName) {
@@ -467,7 +571,7 @@ class Form {
             simple.addButton(land.getTitle() + "\nMaster: " + land.getMaster(), "textures/ui/pointer");
             id += 1;
         });
-        player.sendForm(simple, function (/** @type {{ teleport: (arg0: any, arg1: any, arg2: any, arg3: any) => void; tell: (arg0: string) => void; }} */ player, /** @type {string} */ buttonId) {
+        player.sendForm(simple, function (/** @type {any} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -475,7 +579,7 @@ class Form {
             if (land !== undefined) {
                 let safe_spawn = land.getSafeSpawn();
                 player.teleport(safe_spawn.x, safe_spawn.y, safe_spawn.z, safe_spawn.dimensionId);
-                player.tell(PLUGIN_NAME + "§f你来到了§e " + land.getMaster() + " §f的§e " + land.getTitle() + " §f!");
+                Tools.sendMessage(player, PROMPT.TELEPORT_IN.replace("%MASTER", land.getMaster()).replace("%LAND_TITLE", land.getTitle()));
             }
         });
     };
@@ -487,8 +591,8 @@ class Form {
         let player_real_name = player.realName;
         // @ts-ignore
         let simple = mc.newSimpleForm();
-        simple.setTitle('我的领地');
-        simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
+        simple.setTitle(PROMPT.TITLE_MY_LAND);
+        simple.setContent(PROMPT.YOUR_MONEY.replace("%MONEY", "" + parseInt(myMoney(player))));
         /**  @type {Map<string, Land>} */
         let my_lands = new Map();
         let id = 0;
@@ -500,7 +604,7 @@ class Form {
             }
         }
 
-        player.sendForm(simple, function (/** @type {{ sendForm: (arg0: any, arg1: (player: any, buttonId: any) => void) => void; }} */ player, /** @type {string} */ buttonId) {
+        player.sendForm(simple, function (/** @type {any} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -508,31 +612,31 @@ class Form {
             if (land !== undefined) {
                 // @ts-ignore
                 let formAdmin = mc.newSimpleForm();
-                formAdmin.setTitle("领地管理: " + land.getTitle());
+                formAdmin.setTitle(PROMPT.SUBTITLE_TITLE_LAND.replace("%LAND_TITLE", land.getTitle()));
                 // 切换状态
-                formAdmin.addButton("领地门禁", "textures/ui/" + (land.isOpen() ? "icon_unlocked" : "icon_lock"));
-                formAdmin.addButton("更改名字", "textures/ui/icon_fall");
-                formAdmin.addButton("回到领地", "textures/ui/pointer");
-                formAdmin.addButton("领地共享", "textures/ui/icon_multiplayer");
-                formAdmin.addButton("领地转让", "textures/ui/dressing_room_customization");
-                formAdmin.addButton("卖出领地", "textures/ui/storexblsignin");
+                formAdmin.addButton(PROMPT.SUBTITLE_TITLE_DOOR, "textures/ui/" + (land.isOpen() ? "icon_unlocked" : "icon_lock"));
+                formAdmin.addButton(PROMPT.SUBTITLE_TITLE_RENAME, "textures/ui/icon_fall");
+                formAdmin.addButton(PROMPT.SUBTITLE_TITLE_TELEPORT, "textures/ui/pointer");
+                formAdmin.addButton(PROMPT.SUBTITLE_TITLE_FRIEND, "textures/ui/icon_multiplayer");
+                formAdmin.addButton(PROMPT.SUBTITLE_TITLE_TRANSFER, "textures/ui/dressing_room_customization");
+                formAdmin.addButton(PROMPT.SUBTITLE_TITLE_SELL, "textures/ui/storexblsignin");
 
-                player.sendForm(formAdmin, function (/** @type {{ sendForm: (arg0: any, arg1: { (player: any, data: any): void; (player: any, buttonId: any): void; (player: any, data: any): void; }) => void; teleport: (arg0: any, arg1: any, arg2: any, arg3: any) => void; tell: (arg0: string) => void; sendModalForm: (arg0: string, arg1: string, arg2: string, arg3: string, arg4: (player: any, bool: any) => void) => void; }} */ player, /** @type {any} */ buttonId) {
+                player.sendForm(formAdmin, function (/** @type {any} */ player, /** @type {any} */ buttonId) {
                     if (buttonId === undefined) {
                         return;
                     }
                     switch (buttonId) {
                         case 0:
-                            player.sendModalForm("领地门禁", "是否允许陌生人进入领地参观?", "允许", "拒绝", function (/** @type {any} */ player, /** @type {any} */ bool) {
+                            player.sendModalForm(PROMPT.SETTING_DOOR_TITLE, PROMPT.SETTING_DOOR_CONTENT, PROMPT.SETTING_DOOR_TRUE, PROMPT.SETTING_DOOR_FALSE, function (/** @type {any} */ player, /** @type {any} */ bool) {
                                 if (bool === undefined) {
                                     return;
                                 }
                                 if (bool) {
                                     land.setOpen(true);
-                                    player.tell(PLUGIN_NAME + "§a门禁已关闭! 将允许陌生人进入领地参观!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_DOOR_OPEN);
                                 } else {
                                     land.setOpen(false);
-                                    player.tell(PLUGIN_NAME + "§e门禁已打开! 将拒绝陌生人进入领地参观!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_DOOR_CLOSE);
                                 }
                                 land.saveLand();
                             });
@@ -540,9 +644,9 @@ class Form {
                         case 1:
                             // @ts-ignore
                             let change = mc.newCustomForm();
-                            change.setTitle("更改名字");
-                            change.addInput("新的名字", "Home name", "");
-                            player.sendForm(change, function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {string[]} */ data) {
+                            change.setTitle(PROMPT.SETTING_RENAME_TITLE);
+                            change.addInput(PROMPT.SETTING_RENAME_INPUT, "Home name", "");
+                            player.sendForm(change, function (/** @type {any} */ player, /** @type {string[]} */ data) {
                                 if (data === undefined) {
                                     return;
                                 }
@@ -551,21 +655,22 @@ class Form {
                                     let old_title = land.getTitle();
                                     land.setTitle(new_title);
                                     land.saveLand();
-                                    player.tell(PLUGIN_NAME + "§f领地§e " + old_title + " §f改名为§e " + new_title + " §f!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_RENAME_SUCCESSFUL.replace("%OLD_LAND_TITLE", old_title).replace("%NEW_LAND_TITLE", new_title));
                                 } else {
-                                    player.tell(PLUGIN_NAME + "§c领地名不可为空!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_RENAME_FAILURE);
                                 }
                             });
                             break;
                         case 2:
                             let safe_spawn = land.getSafeSpawn();
                             player.teleport(safe_spawn.getFloorX(), safe_spawn.getFloorY(), safe_spawn.getFloorZ(), safe_spawn.getDimensionId());
-                            player.tell(PLUGIN_NAME + "§f你来到了自己的§e " + land.getTitle() + " §f!");
+                            Tools.sendMessage(player, PROMPT.SETTING_TELEPORT.replace("%LAND_TITLE", land.getTitle()));
                             break;
                         case 3:
                             // @ts-ignore
                             let friendSystemForm = mc.newSimpleForm();
-                            friendSystemForm.addButton("添加共享", "textures/ui/profile_new_look");
+                            friendSystemForm.setTitle(PROMPT.SUBTITLE_TITLE_FRIEND);
+                            friendSystemForm.addButton(PROMPT.SETTING_ADD_FRIEND, "textures/ui/profile_new_look");
                             //todo
                             let myFriends = new Map();
                             let id = 0;
@@ -574,14 +679,14 @@ class Form {
                                 myFriends.set(id, friend_name);
                                 id += 1;
                             });
-                            player.sendForm(friendSystemForm, function (/** @type {{ sendForm: (arg0: any, arg1: (player: any, data: any) => void) => void; sendModalForm: (arg0: string, arg1: string, arg2: string, arg3: string, arg4: (player: any, bool: any) => void) => void; }} */ player, /** @type {number} */ buttonId) {
+                            player.sendForm(friendSystemForm, function (/** @type {any} */ player, /** @type {number} */ buttonId) {
                                 if (buttonId === undefined) {
                                     return;
                                 }
                                 if (buttonId === 0) {
                                     // @ts-ignore
                                     let addFriendForm = mc.newCustomForm();
-                                    addFriendForm.setTitle("添加共享");
+                                    addFriendForm.setTitle(PROMPT.SETTING_ADD_FRIEND);
 
                                     let items = [];
                                     // @ts-ignore
@@ -590,9 +695,9 @@ class Form {
                                         let online_player = allPlayer[index];
                                         items[index] = online_player.realName;
                                     }
-                                    addFriendForm.addDropdown("请选择玩家", items, 0);
+                                    addFriendForm.addDropdown(PROMPT.SETTING_ADD_FRIEND_SELECT_PLAYER, items, 0);
 
-                                    player.sendForm(addFriendForm, function (/** @type {{ tell: (arg0: string) => void; realName: string; }} */ player, /** @type {(string | number)[]} */ data) {
+                                    player.sendForm(addFriendForm, function (/** @type {any} */ player, /** @type {(string | number)[]} */ data) {
                                         if (data === undefined) {
                                             return;
                                         }
@@ -602,24 +707,24 @@ class Form {
                                         if (newFriend !== undefined) {
                                             land.addFriend(newFriend);
                                             land.saveLand();
-                                            player.tell(PLUGIN_NAME + "§f玩家§e " + newFriend.realName + " §f可以用你的§e " + land.getTitle() + " §f领地了!");
-                                            newFriend.tell(PLUGIN_NAME + "§f玩家§e " + player.realName + " §f给你了他的§e " + land.getTitle() + " §f领地使用权限!");
+                                            Tools.sendMessage(player, PROMPT.SETTING_ADD_FRIEND_SUCCESSFUL_PLAYER.replace("%NEW_FRIEND_NAME", newFriend.realName).replace("%LAND_TITLE", land.getTitle()));
+                                            Tools.sendMessage(newFriend, PROMPT.SETTING_ADD_FRIEND_SUCCESSFUL_TARGET.replace("%PLAYER_NAME", player.realName).replace("%LAND_TITLE", land.getTitle()));
                                         } else {
-                                            player.tell(PLUGIN_NAME + "§c玩家§e " + friend_name + " §c必须在线!");
+                                            Tools.sendMessage(player, PROMPT.SETTING_ADD_FRIEND_FAILURE.replace("%FRIEND_NAME", friend_name));
                                         }
                                     });
                                 } else {
                                     let friend_name = myFriends.get(buttonId - 1);
-                                    player.sendModalForm("操作确认", "不再共享给 " + friend_name + " ?", "踢了他", "点错了", function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {any} */ bool) {
+                                    player.sendModalForm(PROMPT.SETTING_CONFIRM, PROMPT.SETTING_DEL_FRIEND_CONTENT.replace("%FRIEND_NAME", friend_name), PROMPT.SETTING_DEL_FRIEND_TRUE, PROMPT.SETTING_DEL_FRIEND_FALSE, function (/** @type {any} */ player, /** @type {any} */ bool) {
                                         if (bool === undefined) {
                                             return;
                                         }
                                         if (bool) {
                                             land.removeFriend(friend_name);
                                             land.saveLand();
-                                            player.tell(PLUGIN_NAME + "§f已将§e " + friend_name + " §f从你的§e " + land.getTitle() + " §f领地中踢出!");
+                                            Tools.sendMessage(player, PROMPT.SETTING_DEL_FRIEND_SUCCESSFUL.replace("%FRIEND_NAME", friend_name).replace("%LAND_TITLE", land.getTitle()));
                                         } else {
-                                            player.tell(PLUGIN_NAME + "§f操作取消!");
+                                            Tools.sendMessage(player, PROMPT.SETTING_CANCE);
                                         }
                                     });
                                 }
@@ -628,9 +733,9 @@ class Form {
                         case 4:
                             // @ts-ignore
                             let make_over = mc.newCustomForm();
-                            make_over.setTitle("领地转让");
-                            make_over.addInput("请输入玩家名字 ➦区分大小写注意空格", "", "");
-                            player.sendForm(make_over, function (/** @type {{ tell: (arg0: string) => void; realName: string; }} */ player, /** @type {string[]} */ data) {
+                            make_over.setTitle(PROMPT.SETTING_MAKE_OVER_TITLE);
+                            make_over.addInput(PROMPT.SETTING_MAKE_OVER_INPUT, "", "");
+                            player.sendForm(make_over, function (/** @type {any} */ player, /** @type {string[]} */ data) {
                                 if (data === undefined) {
                                     return;
                                 }
@@ -640,16 +745,16 @@ class Form {
                                 if (target !== undefined) {
                                     land.setMaster(target);
                                     land.saveLand();
-                                    player.tell(PLUGIN_NAME + "§f你成功将你的§e " + land.getTitle() + " §f领地送给了玩家§e " + target.realName + " §f!");
-                                    target.tell(PLUGIN_NAME + "§f玩家§e " + player.realName + " §f将Ta的§e " + land.getTitle() + " §f领地送给了你!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_MAKE_OVER_SUCCESSFUL_PLAYER.replace("%LAND_TITLE", land.getTitle()).replace("%TARGET_NAME", target.realName));
+                                    Tools.sendMessage(target, PROMPT.SETTING_MAKE_OVER_SUCCESSFUL_TARGET.replace("%PLAYER_NAME", player.realName).replace("%LAND_TITLE", land.getTitle()));
                                 } else {
-                                    player.tell(PLUGIN_NAME + "§c玩家§e " + target_name + " §c必须在线!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_MAKE_OVER_FAILURE.replace("%TARGET_NAME", target_name));
                                 }
                             });
                             break;
                         case 5:
                             let money_count = land.getStartVector2().squared(land.getEndVector2()) * LAND_SELL_PRICE;
-                            player.sendModalForm("操作确认", "以 " + Math.floor(money_count) + " 块钱的价格卖出 " + land.getTitle() + " ?", "卖了换钱", "我再想想", function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {any} */ bool) {
+                            player.sendModalForm(PROMPT.SETTING_CONFIRM, PROMPT.SETTING_SELL_CONTENT.replace("%MONEY", "" + Math.floor(money_count)).replace("%LAND_TITLE", land.getTitle()), PROMPT.SETTING_SELL_TRUE, PROMPT.SETTING_SELL_FALSE, function (/** @type {any} */ player, /** @type {any} */ bool) {
                                 if (bool === undefined) {
                                     return;
                                 }
@@ -658,14 +763,14 @@ class Form {
                                         // @ts-ignore
                                         let friend = mc.getPlayer(friend_name);
                                         if (friend !== undefined) {
-                                            friend.tell(PLUGIN_NAME + "§f你的朋友§e " + land.getMaster() + " §f将Ta的§e " + land.getTitle() + " §f领地卖掉了");
+                                            Tools.sendMessage(friend, PROMPT.SETTING_SELL_SUCCESSFUL_FRIEND.replace("%MASTER_NAME", land.getMaster()).replace("%LAND_TITLE", land.getTitle()));
                                         }
                                     });
                                     removeLand(land.getLandString());
                                     addMoney(player, money_count);
-                                    player.tell(PLUGIN_NAME + "§f领地已卖出, 获得§e " + Math.floor(money_count) + " §f块钱!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_SELL_SUCCESSFUL_PLAYER.replace("%MONEY", "" + Math.floor(money_count)));
                                 } else {
-                                    player.tell(PLUGIN_NAME + "§f操作取消!");
+                                    Tools.sendMessage(player, PROMPT.SETTING_CANCE);
                                 }
                             });
                             break;
@@ -684,8 +789,8 @@ class Form {
         let player_real_name = player.realName;
         // @ts-ignore
         let simple = mc.newSimpleForm();
-        simple.setTitle('好友领地');
-        simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
+        simple.setTitle(PROMPT.TITLE_FRIEND_LAND);
+        simple.setContent(PROMPT.YOUR_MONEY.replace("%MONEY", "" + parseInt(myMoney(player))));
         let my_lands = new Map();
         let id = 0;
         landHashMap.forEach(function (land, landName) {
@@ -695,7 +800,7 @@ class Form {
                 id += 1;
             }
         });
-        player.sendForm(simple, function (/** @type {{ teleport: (arg0: any, arg1: any, arg2: any, arg3: any) => void; tell: (arg0: string) => void; }} */ player, /** @type {string} */ buttonId) {
+        player.sendForm(simple, function (/** @type {any} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -703,7 +808,7 @@ class Form {
             if (land !== undefined) {
                 let safe_spawn = land.getSafeSpawn();
                 player.teleport(safe_spawn.x, safe_spawn.y, safe_spawn.z, safe_spawn.dimensionId);
-                player.tell(PLUGIN_NAME + "§f你来到了§e " + land.getMaster() + " §f的§e " + land.getTitle() + " §f!");
+                Tools.sendMessage(player, PROMPT.TELEPORT_IN.replace("%MASTER", land.getMaster()).replace("%LAND_TITLE", land.getTitle()));
             }
         });
     };
@@ -715,7 +820,7 @@ class Form {
     static sendBuyLandForm(player, end) {
         let player_real_name = player.realName;
         if (!setter.has(player_real_name)) {
-            player.tell(PLUGIN_NAME + "§c你需要设置起点.");
+            Tools.sendMessage(player, PROMPT.NEED_SET_START_POS);
             return;
         }
         let start = setter.get(player_real_name);
@@ -723,12 +828,12 @@ class Form {
 
         // @ts-ignore
         let simple = mc.newSimpleForm();
-        simple.setTitle("    §l购买这块地需要" + Math.floor(need_money) + "块钱, 要买吗?   继续圈 ➦");
-        simple.setContent('你的钱数: ' + parseInt(myMoney(player)));
-        simple.addButton("我要购买", "textures/ui/MCoin");
-        simple.addButton("§l取消圈地", "textures/ui/icon_trash");
+        simple.setTitle(PROMPT.BUY_LAND_TITLE.replace("%MONEY", "" + Math.floor(need_money)));
+        simple.setContent(PROMPT.YOUR_MONEY.replace("%MONEY", "" + parseInt(myMoney(player))));
+        simple.addButton(PROMPT.BUY_LAND_BUY, "textures/ui/MCoin");
+        simple.addButton(PROMPT.BUY_LAND_CANCE, "textures/ui/icon_trash");
 
-        player.sendForm(simple, function (/** @type {{ realName: any; xuid: any; tell: (arg0: string) => void; sendForm: (arg0: any, arg1: (player: any, data: any) => void) => void; }} */ player, /** @type {any} */ buttonId) {
+        player.sendForm(simple, function (/** @type {any} */ player, /** @type {any} */ buttonId) {
             let player_real_name = player.realName;
             ender.delete(player_real_name);
             if (buttonId === undefined) {
@@ -742,7 +847,7 @@ class Form {
                         let land_string = start.toStr() + "::" + end.toStr();
 
                         let map = new Map();
-                        map.set("title", "家");
+                        map.set("title", PROMPT.DEFAULT_LAND_NAME);
                         map.set("open", true);
                         map.set("master", player_real_name);
                         map.set("masterXuid", player.xuid);
@@ -752,13 +857,13 @@ class Form {
                         reduceMoney(player, need_money);
 
                         setter.delete(player_real_name);
-                        player.tell(PLUGIN_NAME + "§a圈地成功, 共花费了§c " + Math.floor(need_money) + "§a 块钱.");
+                        Tools.sendMessage(player, PROMPT.BUY_LAND_SUCCESSFUL.replace("%MONEY", "" + Math.floor(need_money)));
 
                         // @ts-ignore
                         let change = mc.newCustomForm();
-                        change.setTitle("恭喜! 圈地成功");
-                        change.addInput("给你的新领地起个名字吧!", "Home name", player_real_name + "的新家");
-                        player.sendForm(change, function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {string[]} */ data) {
+                        change.setTitle(PROMPT.RENAME_NEW_LAND_TITLE);
+                        change.addInput(PROMPT.RENAME_NEW_LAND_INPUT, "Home name", PROMPT.DEFAULT_RENAME_NEW_LAND_NAME.replace("%MASTER", player_real_name));
+                        player.sendForm(change, function (/** @type {any} */ player, /** @type {string[]} */ data) {
                             if (data === undefined) {
                                 return;
                             }
@@ -767,14 +872,14 @@ class Form {
                                 let land = landHashMap.get(land_string);
                                 land.setTitle(title);
                                 land.saveLand();
-                                player.tell(PLUGIN_NAME + "§f新的领地命名为 §e" + title + "§f !");
+                                Tools.sendMessage(player, PROMPT.RENAME_NEW_LAND_SUCCESSFUL.replace("%LAND_TITLE", title));
                             } else {
-                                player.tell(PLUGIN_NAME + "§c领地名不可为空!");
+                                Tools.sendMessage(player, PROMPT.RENAME_NEW_LAND_FAILURE);
                             }
                         });
                     } else {
                         setter.delete(player_real_name);
-                        player.tell(PLUGIN_NAME + "§c你的钱不够.");
+                        Tools.sendMessage(player, PROMPT.BUY_LAND_FAILURE);
                     }
                     break;
                 case 1:
@@ -855,12 +960,12 @@ function onEnable() {
         return false;
     });
     // @ts-ignore
-    mc.regPlayerCmd("landlist", "领地列表.", function (/** @type {{ tell: (arg0: string) => void; }} */ player, /** @type {any} */ args) {
+    mc.regPlayerCmd("landlist", "领地列表.", function (/** @type {any} */ player, /** @type {any} */ args) {
         //todo
         if (isOp(player)) {
             Form.sendLandListForm(player);
         } else {
-            player.tell(PLUGIN_NAME + "§c你不是管理员.");
+            Tools.sendMessage(player, PROMPT.COMMAND_NOT_ADMIN);
         }
         return false;
     });
@@ -870,18 +975,18 @@ function onEnable() {
         return false;
     });
     // @ts-ignore
-    mc.regPlayerCmd("removeland", "删除脚下领地.", function (/** @type {{ pos: any; tell: (arg0: string) => void; }} */ player, /** @type {any} */ args) {
+    mc.regPlayerCmd("removeland", "删除脚下领地.", function (/** @type {any} */ player, /** @type {any} */ args) {
         if (isOp(player)) {
             let playerPos = FloatPosToVector3(player.pos);
             let land_string = getLandString(playerPos.getFloorX(), playerPos.getFloorZ(), playerPos.getDimensionId());
             if (land_string !== null) {
                 removeLand(land_string);
-                player.tell(PLUGIN_NAME + "§a已将脚下的领地删除.");
+                Tools.sendMessage(player, PROMPT.COMMAND_REMOVE_LAND_SUCCESSFUL);
             } else {
-                player.tell(PLUGIN_NAME + "§c你的脚下并没有领地.");
+                Tools.sendMessage(player, PROMPT.COMMAND_REMOVE_LAND_FAILURE);
             }
         } else {
-            player.tell(PLUGIN_NAME + "§c你不是管理员.");
+            Tools.sendMessage(player, PROMPT.COMMAND_NOT_ADMIN);
         }
         return false;
     });
@@ -912,7 +1017,7 @@ function onUpdate() {
                             let check = getLandString(old.getFloorX(), old.getFloorZ(), old.getDimensionId());
                             if (check === null) {
                                 player.teleport(old.x, old.y, old.z, old.dimensionId);
-                                player.tell("§c你无法进入 §f" + land.getMaster() + " §c的领地", 5);
+                                Tools.sendTip(player, PROMPT.REFUSED_WALK_IN.replace("%MASTER", land.getMaster()));
                                 haulBack = true;
                             }
                         }
@@ -922,14 +1027,14 @@ function onUpdate() {
                 if (!haulBack) {
                     let delay = tipDelay.get(player_real_name);
                     if (!playerInLand.has(player_real_name) || playerInLand.get(player_real_name) !== land) {
-                        player.tell("§e你进入了 §f" + land.getMaster() + " §e的领地", 5);
+                        Tools.sendTip(player, PROMPT.WALK_IN.replace("%MASTER", land.getMaster()));
                         playerInLand.set(player_real_name, land);
                         if (delay === undefined || delay < 7) {
                             tipDelay.set(player_real_name, 7);
                         }
                     } else {
                         if (delay === undefined) {
-                            player.tell("§l" + (land.hasPermission(player) ? "§7" : "§e") + land.getTitle(), 5);
+                            Tools.sendTip(player, "§l" + (land.hasPermission(player) ? "§7" : "§e") + land.getTitle());
                         }
                     }
                     if (delay !== undefined) {
@@ -944,7 +1049,7 @@ function onUpdate() {
         } else if (playerInLand.has(player_real_name)) {
             let land = playerInLand.get(player_real_name);
             if (land !== undefined) {
-                player.tell("§7你离开了 §f" + land.getMaster() + " §7的领地", 5);
+                Tools.sendTip(player, PROMPT.WALK_OUT.replace("%MASTER", land.getMaster()));
                 playerInLand.delete(player_real_name);
             }
         }
@@ -999,12 +1104,12 @@ function registerEvent(event, v) {
     mc.listen(event, v);
 }
 
-registerEvent("onPlaceBlock", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; id: number; }} */ block) {
+registerEvent("onPlaceBlock", function (/** @type {any} */ player, /** @type {any} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
     if (!hasPermissionByVector3(player, blockPosition)) {
         if (block.id !== 207) {
-            player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
         }
         if (!isOp(player)) {
             return false;
@@ -1012,18 +1117,18 @@ registerEvent("onPlaceBlock", function (/** @type {{ tell: (arg0: string, arg1: 
     }
 });
 
-registerEvent("onDestroyBlock", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
+registerEvent("onDestroyBlock", function (/** @type {any} */ player, /** @type {any} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
     if (!hasPermissionByVector3(player, blockPosition)) {
-        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
         if (!isOp(player)) {
             return false;
         }
     }
 });
 
-registerEvent("onUseItemOn", function (/** @type {{ realName: any; tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {any} */ item, /** @type {{ pos: any; }} */ block) {
+registerEvent("onUseItemOn", function (/** @type {any} */ player, /** @type {any} */ item, /** @type {any} */ block) {
     // todo
     let player_real_name = player.realName;
     if (setter.has(player_real_name)) {
@@ -1032,25 +1137,25 @@ registerEvent("onUseItemOn", function (/** @type {{ realName: any; tell: (arg0: 
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地
     if (!hasPermissionByVector3(player, blockPosition)) {
-        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
         if (!isOp(player)) {
             return false;
         }
     }
 });
 
-registerEvent("onUseFrameBlock", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
+registerEvent("onUseFrameBlock", function (/** @type {any} */ player, /** @type {any} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地展示框
     if (!hasPermissionByVector3(player, blockPosition)) {
-        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
         if (!isOp(player)) {
             return false;
         }
     }
 });
 
-registerEvent("onLiquidFlow", function (/** @type {{ pos: any; }} */ block, /** @type {{ x: number; z: number; dimid: number; }} */ intPos) {
+registerEvent("onLiquidFlow", function (/** @type {any} */ block, /** @type {any} */ intPos) {
     let blockPosition = FloatPosToVector3(block.pos);
     let from_land_string = whoLand(Math.floor(blockPosition.x), Math.floor(blockPosition.z), blockPosition.getDimensionId());
     let to_land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
@@ -1062,7 +1167,7 @@ registerEvent("onLiquidFlow", function (/** @type {{ pos: any; }} */ block, /** 
     }
 });
 
-registerEvent("onFireSpread", function (/** @type {{ x: number; z: number; dimid: number; }} */ intPos) {
+registerEvent("onFireSpread", function (/** @type {any} */ intPos) {
     let land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
     // 保护他人领地不被烧毁
     if (land_string !== null) {
@@ -1070,7 +1175,7 @@ registerEvent("onFireSpread", function (/** @type {{ x: number; z: number; dimid
     }
 });
 
-registerEvent("onExplode", function (/** @type {any} */ entity, /** @type {{ x: number; z: number; dimid: number; }} */ floatPos, /** @type {any} */ power, /** @type {any} */ range, /** @type {any} */ isDestroy, /** @type {any} */ isFire) {
+registerEvent("onExplode", function (/** @type {any} */ entity, /** @type {any} */ floatPos, /** @type {any} */ power, /** @type {any} */ range, /** @type {any} */ isDestroy, /** @type {any} */ isFire) {
     // 保护他人领地不被实体炸毁
     let master = getNearLand(Math.floor(floatPos.x), Math.floor(floatPos.z), floatPos.dimid);
     if (master !== undefined) {
@@ -1078,7 +1183,7 @@ registerEvent("onExplode", function (/** @type {any} */ entity, /** @type {{ x: 
     }
 });
 
-registerEvent("onRespawnAnchorExplode", function (/** @type {{ x: number; z: number; dimid: number; }} */ intPos, /** @type {any} */ player) {
+registerEvent("onRespawnAnchorExplode", function (/** @type {any} */ intPos, /** @type {any} */ player) {
     // 保护他人领地不被重生锚炸毁
     let master = getNearLand(intPos.x, intPos.z, intPos.dimid);
     if (master !== undefined) {
@@ -1086,24 +1191,28 @@ registerEvent("onRespawnAnchorExplode", function (/** @type {{ x: number; z: num
     }
 });
 
-registerEvent("onOpenContainer", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
+registerEvent("onOpenContainer", function (/** @type {any} */ player, /** @type {any} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地容器
     if (!hasPermissionByVector3(player, blockPosition)) {
-        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
         if (!isOp(player)) {
             return false;
         }
     }
 });
 
-registerEvent("onRide", function (/** @type {{ toPlayer: () => any; }} */ ride, /** @type {{ pos: any; }} */ entity) {
+registerEvent("onRide", function (/** @type {any} */ ride, /** @type {any} */ entity) {
     let player = ride.toPlayer();
     if (player !== null) {
+        // try
+        if (!player.hasOwnProperty("realName") || player.realName === undefined) {
+            return false;
+        }
         let entityPosition = FloatPosToVector3(entity.pos);
         // 保护他人领地坐骑
         if (!hasPermissionByVector3(player, entityPosition)) {
-            player.tell("§l§c你不能在 §f" + whoLandByVector3(entityPosition) + "§c 的领地中骑乘实体", 5);
+            Tools.sendTip(player, PROMPT.CANCE_RIDE.replace("%MASTER", whoLandByVector3(entityPosition)));
             if (!isOp(player)) {
                 return false;
             }
@@ -1111,22 +1220,22 @@ registerEvent("onRide", function (/** @type {{ toPlayer: () => any; }} */ ride, 
     }
 });
 
-registerEvent("onBlockInteracted", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ block) {
+registerEvent("onBlockInteracted", function (/** @type {any} */ player, /** @type {any} */ block) {
     let blockPosition = FloatPosToVector3(block.pos);
     // 保护他人领地互交方块
     if (!hasPermissionByVector3(player, blockPosition)) {
-        player.tell("§l§c停止, 这是 §f" + whoLandByVector3(blockPosition) + "§c 的领地哦", 5);
+        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
         if (!isOp(player)) {
             return false;
         }
     }
 });
 
-registerEvent("onAttack", function (/** @type {{ tell: (arg0: string, arg1: number) => void; }} */ player, /** @type {{ pos: any; }} */ entity) {
+registerEvent("onAttack", function (/** @type {any} */ player, /** @type {any} */ entity) {
     let entityPosition = FloatPosToVector3(entity.pos);
     // 保护他人领地生物
     if (!hasPermissionByVector3(player, entityPosition)) {
-        player.tell("§l§c你不能在 §f" + whoLandByVector3(entityPosition) + "§c 的领地中发动攻击", 5);
+        Tools.sendTip(player, PROMPT.CANCE_ATTACK.replace("%MASTER", whoLandByVector3(entityPosition)));
         if (!isOp(player)) {
             return false;
         }
@@ -1153,13 +1262,13 @@ function saveLandConfig() {
 }
 
 /**
- * @param {{ realName: any; tell: (arg0: string) => void; }} player
+ * @param {any} player
  */
 function quitEnclosure(player) {
     let player_real_name = player.realName;
     if (setter.has(player_real_name)) {
         setter.delete(player_real_name);
-        player.tell(PLUGIN_NAME + "§c你已退出圈地模式.");
+        Tools.sendMessage(player, PROMPT.END_ENCLOSURE);
     }
     ender.delete(player_real_name);
 }
@@ -1294,7 +1403,7 @@ function toVector3(str) {
 }
 
 /**
- * @param {{ x: number; y: number; z: number; dimid: number; }} floatPos
+ * @param {any} floatPos
  */
 function FloatPosToVector3(floatPos) {
     if (floatPos === undefined) {
@@ -1303,7 +1412,10 @@ function FloatPosToVector3(floatPos) {
     return new Vector3(floatPos.x, floatPos.y, floatPos.z, floatPos.dimid);
 }
 
-/** @param {any} player */
+/**
+ *  @param {any} player
+ *  @returns {any}
+ */
 function myMoney(player) {
     // @ts-ignore
     return money.get(player.xuid);
