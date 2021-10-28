@@ -434,16 +434,22 @@ class Land {
      * @param {any} intPos
      */
     setBorderBlock(intPos) {
+        /*
         // @ts-ignore
         let player = mc.getPlayer(this.master);
         if (player !== null) {
             let command = "setblock " + intPos.x + " " + intPos.y + " " + intPos.z + " " + BORDER_BLOCK_NAME;
             // @ts-ignore
             mc.runcmd("execute \"" + player.realName + "\" ~ ~ ~ " + command)
-        }
+        }*/
+        // @ts-ignore
+        mc.setBlock(intPos, "minecraft:" + BORDER_BLOCK_NAME);
     }
 
     generateBorder() {
+        if (BORDER_BLOCK_NAME === "air") {
+            return;
+        }
         let dimension = this.start.dimensionId;
         let min_x = Math.min(this.start.getFloorX(), this.end.getFloorX());
         let max_x = Math.max(this.start.getFloorX(), this.end.getFloorX());
@@ -893,11 +899,11 @@ class Form {
 }
 
 var commands = {
-    "land": ["领地指令", function(/** @type {any} */ player, /** @type {any} */ args) {
+    "land": ["领地指令", function (/** @type {any} */ player, /** @type {any} */ args) {
         Form.sendLandForm(player);
         return false;
     }],
-    "landlist": ["领地列表", function(/** @type {any} */ player, /** @type {any} */ args) {
+    "landlist": ["领地列表", function (/** @type {any} */ player, /** @type {any} */ args) {
         //todo
         if (isOp(player)) {
             Form.sendLandListForm(player);
@@ -906,11 +912,11 @@ var commands = {
         }
         return false;
     }],
-    "myland": ["我的领地", function(/** @type {any} */ player, /** @type {any} */ args) {
+    "myland": ["我的领地", function (/** @type {any} */ player, /** @type {any} */ args) {
         Form.sendMyLandsForm(player);
         return false;
     }],
-    "removeland": ["删除脚下领地", function(/** @type {any} */ player, /** @type {any} */ args) {
+    "removeland": ["删除脚下领地", function (/** @type {any} */ player, /** @type {any} */ args) {
         if (isOp(player)) {
             let playerPos = FloatPosToVector3(player.pos);
             let land_string = getLandString(playerPos.getFloorX(), playerPos.getFloorZ(), playerPos.getDimensionId());
@@ -939,7 +945,6 @@ var listener = {
                 return false;
             }
         }
-        Tools.sendMessage(player, "onPlaceBlock");
     },
     "onDestroyBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
@@ -950,7 +955,6 @@ var listener = {
                 return false;
             }
         }
-        Tools.sendMessage(player, "onDestroyBlock");
     },
     "onUseItemOn": function (/** @type {any} */ player, /** @type {any} */ item, /** @type {any} */ block) {
         // todo
@@ -1416,6 +1420,7 @@ function FloatPosToVector3(floatPos) {
  *  @returns {any}
  */
 function myMoney(player) {
+    return 10000;
     // @ts-ignore
     return money.get(player.xuid);
 }
