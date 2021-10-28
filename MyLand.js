@@ -1204,9 +1204,9 @@ registerEvent("onOpenContainer", function (/** @type {any} */ player, /** @type 
 
 registerEvent("onRide", function (/** @type {any} */ ride, /** @type {any} */ entity) {
     let player = ride.toPlayer();
-    if (player !== null) {
+    if (player !== null && player !== undefined) {
         // try
-        if (!player.hasOwnProperty("realName") || player.realName === undefined) {
+        if (typeof(player.realName) === "undefined") {
             return false;
         }
         let entityPosition = FloatPosToVector3(entity.pos);
