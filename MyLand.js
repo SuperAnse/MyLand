@@ -1420,7 +1420,6 @@ function FloatPosToVector3(floatPos) {
  *  @returns {any}
  */
 function myMoney(player) {
-    return 10000;
     // @ts-ignore
     return money.get(player.xuid);
 }
