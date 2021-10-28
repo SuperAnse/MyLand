@@ -94,26 +94,26 @@ var PROMPT = {
 class Tools {
 
     /**
-     * @param {any} player 
-     * @param {string} message 
+     * @param {any} player
+     * @param {string} message
      */
-    static sendMessage(player, message){
+    static sendMessage(player, message) {
         player.tell(PLUGIN_NAME + message);
     }
 
     /**
-     * @param {any} player 
-     * @param {string} message 
+     * @param {any} player
+     * @param {string} message
      */
-    static sendPopup(player, message){
+    static sendPopup(player, message) {
         player.tell(message, 4);
     }
 
     /**
-     * @param {any} player 
-     * @param {string} message 
+     * @param {any} player
+     * @param {string} message
      */
-    static sendTip(player, message){
+    static sendTip(player, message) {
         player.tell(message, 5);
     }
 };
@@ -430,8 +430,8 @@ class Land {
     };
 
     /**
-     * 
-     * @param {any} intPos 
+     *
+     * @param {any} intPos
      */
     setBorderBlock(intPos) {
         // @ts-ignore
@@ -461,12 +461,12 @@ class Land {
     }
 
     /**
-     * 
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} z 
-     * @param {number} dimension 
-     * @returns 
+     *
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {number} dimension
+     * @returns
      */
     safePos(x, y, z, dimension) {
         // @ts-ignore
@@ -892,6 +892,180 @@ class Form {
     };
 }
 
+var commands = {
+    "land": ["领地指令", function(/** @type {any} */ player, /** @type {any} */ args) {
+        Form.sendLandForm(player);
+        return false;
+    }],
+    "landlist": ["领地列表", function(/** @type {any} */ player, /** @type {any} */ args) {
+        //todo
+        if (isOp(player)) {
+            Form.sendLandListForm(player);
+        } else {
+            Tools.sendMessage(player, PROMPT.COMMAND_NOT_ADMIN);
+        }
+        return false;
+    }],
+    "myland": ["我的领地", function(/** @type {any} */ player, /** @type {any} */ args) {
+        Form.sendMyLandsForm(player);
+        return false;
+    }],
+    "removeland": ["删除脚下领地", function(/** @type {any} */ player, /** @type {any} */ args) {
+        if (isOp(player)) {
+            let playerPos = FloatPosToVector3(player.pos);
+            let land_string = getLandString(playerPos.getFloorX(), playerPos.getFloorZ(), playerPos.getDimensionId());
+            if (land_string !== null) {
+                removeLand(land_string);
+                Tools.sendMessage(player, PROMPT.COMMAND_REMOVE_LAND_SUCCESSFUL);
+            } else {
+                Tools.sendMessage(player, PROMPT.COMMAND_REMOVE_LAND_FAILURE);
+            }
+        } else {
+            Tools.sendMessage(player, PROMPT.COMMAND_NOT_ADMIN);
+        }
+        return false;
+    }]
+}
+
+var listener = {
+    "onPlaceBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
+        let blockPosition = FloatPosToVector3(block.pos);
+        // 保护他人领地
+        if (!hasPermissionByVector3(player, blockPosition)) {
+            if (block.id !== 207) {
+                Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
+            }
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+        Tools.sendMessage(player, "onPlaceBlock");
+    },
+    "onDestroyBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
+        let blockPosition = FloatPosToVector3(block.pos);
+        // 保护他人领地
+        if (!hasPermissionByVector3(player, blockPosition)) {
+            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+        Tools.sendMessage(player, "onDestroyBlock");
+    },
+    "onUseItemOn": function (/** @type {any} */ player, /** @type {any} */ item, /** @type {any} */ block) {
+        // todo
+        let player_real_name = player.realName;
+        if (setter.has(player_real_name)) {
+            Form.sendLandForm(player);
+        }
+        let blockPosition = FloatPosToVector3(block.pos);
+        // 保护他人领地
+        if (!hasPermissionByVector3(player, blockPosition)) {
+            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+    },
+    "onUseFrameBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
+        let blockPosition = FloatPosToVector3(block.pos);
+        // 保护他人领地展示框
+        if (!hasPermissionByVector3(player, blockPosition)) {
+            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+    },
+    "onLiquidFlow": function (/** @type {any} */ block, /** @type {any} */ intPos) {
+        let blockPosition = FloatPosToVector3(block.pos);
+        let from_land_string = whoLand(Math.floor(blockPosition.x), Math.floor(blockPosition.z), blockPosition.getDimensionId());
+        let to_land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
+        // 保护他人领地不被外来流体破坏
+        if (to_land_string !== null) {
+            if (from_land_string !== to_land_string) {
+                return false;
+            }
+        }
+    },
+    "onFireSpread": function (/** @type {any} */ intPos) {
+        let land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
+        // 保护他人领地不被烧毁
+        if (land_string !== null) {
+            return false;
+        }
+    },
+    "onExplode": function (/** @type {any} */ entity, /** @type {any} */ floatPos, /** @type {any} */ power, /** @type {any} */ range, /** @type {any} */ isDestroy, /** @type {any} */ isFire) {
+        // 保护他人领地不被实体炸毁
+        let master = getNearLand(Math.floor(floatPos.x), Math.floor(floatPos.z), floatPos.dimid);
+        if (master !== undefined) {
+            return false;
+        }
+    },
+    "onRespawnAnchorExplode": function (/** @type {any} */ intPos, /** @type {any} */ player) {
+        // 保护他人领地不被重生锚炸毁
+        let master = getNearLand(intPos.x, intPos.z, intPos.dimid);
+        if (master !== undefined) {
+            return false;
+        }
+    },
+    "onOpenContainer": function (/** @type {any} */ player, /** @type {any} */ block) {
+        let blockPosition = FloatPosToVector3(block.pos);
+        // 保护他人领地容器
+        if (!hasPermissionByVector3(player, blockPosition)) {
+            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+    },
+    "onRide": function (/** @type {any} */ ride, /** @type {any} */ entity) {
+        let player = ride.toPlayer();
+        if (player !== null && player !== undefined) {
+            // try
+            if (typeof (player.realName) === "undefined") {
+                return false;
+            }
+            let entityPosition = FloatPosToVector3(entity.pos);
+            // 保护他人领地坐骑
+            if (!hasPermissionByVector3(player, entityPosition)) {
+                Tools.sendTip(player, PROMPT.CANCE_RIDE.replace("%MASTER", whoLandByVector3(entityPosition)));
+                if (!isOp(player)) {
+                    return false;
+                }
+            }
+        }
+    },
+    "onBlockInteracted": function (/** @type {any} */ player, /** @type {any} */ block) {
+        let blockPosition = FloatPosToVector3(block.pos);
+        // 保护他人领地互交方块
+        if (!hasPermissionByVector3(player, blockPosition)) {
+            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+    },
+    "onAttack": function (/** @type {any} */ player, /** @type {any} */ entity) {
+        let entityPosition = FloatPosToVector3(entity.pos);
+        // 保护他人领地生物
+        if (!hasPermissionByVector3(player, entityPosition)) {
+            Tools.sendTip(player, PROMPT.CANCE_ATTACK.replace("%MASTER", whoLandByVector3(entityPosition)));
+            if (!isOp(player)) {
+                return false;
+            }
+        }
+    },
+    "onWitherBossDestroy": function (/** @type {any} */ entity, /** @type {any} */ intPos, /** @type {any} */ intPos2) {
+        // 保护他人领地不被凋零破坏
+        return false;
+    },
+    "onLeft": function (/** @type {any} */ player) {
+        // 离开游戏退出圈地模式
+        quitEnclosure(player);
+    }
+}
+
 /** @type {Map<string, Vector3>} */
 var MOVE_CHACK_MAP = new Map();
 /** @type {Map<string, Vector3>} */
@@ -914,6 +1088,12 @@ function isOp(player) {
 function info(message) {
     // @ts-ignore
     log("[MyLand] " + message);
+}
+
+/** @param {string} message */
+function warn(message) {
+    // @ts-ignore
+    colorLog("yellow", "[MyLand] " + message);
 }
 
 /**
@@ -954,42 +1134,19 @@ function onEnable() {
         landHashMap.set(land_string, new Land(land_string, map));
     }
     info("领地数据读取完毕...");
-    // @ts-ignore
-    mc.regPlayerCmd("land", "领地指令.", function (/** @type {any} */ player, /** @type {any} */ args) {
-        Form.sendLandForm(player);
-        return false;
-    });
-    // @ts-ignore
-    mc.regPlayerCmd("landlist", "领地列表.", function (/** @type {any} */ player, /** @type {any} */ args) {
-        //todo
-        if (isOp(player)) {
-            Form.sendLandListForm(player);
-        } else {
-            Tools.sendMessage(player, PROMPT.COMMAND_NOT_ADMIN);
-        }
-        return false;
-    });
-    // @ts-ignore
-    mc.regPlayerCmd("myland", "我的领地.", function (/** @type {any} */ player, /** @type {any} */ args) {
-        Form.sendMyLandsForm(player);
-        return false;
-    });
-    // @ts-ignore
-    mc.regPlayerCmd("removeland", "删除脚下领地.", function (/** @type {any} */ player, /** @type {any} */ args) {
-        if (isOp(player)) {
-            let playerPos = FloatPosToVector3(player.pos);
-            let land_string = getLandString(playerPos.getFloorX(), playerPos.getFloorZ(), playerPos.getDimensionId());
-            if (land_string !== null) {
-                removeLand(land_string);
-                Tools.sendMessage(player, PROMPT.COMMAND_REMOVE_LAND_SUCCESSFUL);
-            } else {
-                Tools.sendMessage(player, PROMPT.COMMAND_REMOVE_LAND_FAILURE);
-            }
-        } else {
-            Tools.sendMessage(player, PROMPT.COMMAND_NOT_ADMIN);
-        }
-        return false;
-    });
+    warn("=============== 食用方法 ===============");
+    // @register-commands
+    for (let command_name in commands) {
+        // @ts-ignore
+        mc.regPlayerCmd(command_name, commands[command_name][0], commands[command_name][1]);
+        warn("| " + commands[command_name][0] + ": /" + command_name);
+    }
+    warn("========================================");
+    // @register-events
+    for (let event_name in listener) {
+        // @ts-ignore
+        mc.listen(event_name, listener[event_name]);
+    }
     onUpdate();
     info("加载成功...");
 }
@@ -1094,164 +1251,6 @@ function buildLandParticle() {
         }
     });
 }
-
-/**
- * @param {string} event
- * @param {any} v
- */
-function registerEvent(event, v) {
-    // @ts-ignore
-    mc.listen(event, v);
-}
-
-registerEvent("onPlaceBlock", function (/** @type {any} */ player, /** @type {any} */ block) {
-    let blockPosition = FloatPosToVector3(block.pos);
-    // 保护他人领地
-    if (!hasPermissionByVector3(player, blockPosition)) {
-        if (block.id !== 207) {
-            Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
-        }
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onDestroyBlock", function (/** @type {any} */ player, /** @type {any} */ block) {
-    let blockPosition = FloatPosToVector3(block.pos);
-    // 保护他人领地
-    if (!hasPermissionByVector3(player, blockPosition)) {
-        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onUseItemOn", function (/** @type {any} */ player, /** @type {any} */ item, /** @type {any} */ block) {
-    // todo
-    let player_real_name = player.realName;
-    if (setter.has(player_real_name)) {
-        Form.sendLandForm(player);
-    }
-    let blockPosition = FloatPosToVector3(block.pos);
-    // 保护他人领地
-    if (!hasPermissionByVector3(player, blockPosition)) {
-        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onUseFrameBlock", function (/** @type {any} */ player, /** @type {any} */ block) {
-    let blockPosition = FloatPosToVector3(block.pos);
-    // 保护他人领地展示框
-    if (!hasPermissionByVector3(player, blockPosition)) {
-        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onLiquidFlow", function (/** @type {any} */ block, /** @type {any} */ intPos) {
-    let blockPosition = FloatPosToVector3(block.pos);
-    let from_land_string = whoLand(Math.floor(blockPosition.x), Math.floor(blockPosition.z), blockPosition.getDimensionId());
-    let to_land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
-    // 保护他人领地不被外来流体破坏
-    if (to_land_string !== null) {
-        if (from_land_string !== to_land_string) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onFireSpread", function (/** @type {any} */ intPos) {
-    let land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
-    // 保护他人领地不被烧毁
-    if (land_string !== null) {
-        return false;
-    }
-});
-
-registerEvent("onExplode", function (/** @type {any} */ entity, /** @type {any} */ floatPos, /** @type {any} */ power, /** @type {any} */ range, /** @type {any} */ isDestroy, /** @type {any} */ isFire) {
-    // 保护他人领地不被实体炸毁
-    let master = getNearLand(Math.floor(floatPos.x), Math.floor(floatPos.z), floatPos.dimid);
-    if (master !== undefined) {
-        return false;
-    }
-});
-
-registerEvent("onRespawnAnchorExplode", function (/** @type {any} */ intPos, /** @type {any} */ player) {
-    // 保护他人领地不被重生锚炸毁
-    let master = getNearLand(intPos.x, intPos.z, intPos.dimid);
-    if (master !== undefined) {
-        return false;
-    }
-});
-
-registerEvent("onOpenContainer", function (/** @type {any} */ player, /** @type {any} */ block) {
-    let blockPosition = FloatPosToVector3(block.pos);
-    // 保护他人领地容器
-    if (!hasPermissionByVector3(player, blockPosition)) {
-        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onRide", function (/** @type {any} */ ride, /** @type {any} */ entity) {
-    let player = ride.toPlayer();
-    if (player !== null && player !== undefined) {
-        // try
-        if (typeof(player.realName) === "undefined") {
-            return false;
-        }
-        let entityPosition = FloatPosToVector3(entity.pos);
-        // 保护他人领地坐骑
-        if (!hasPermissionByVector3(player, entityPosition)) {
-            Tools.sendTip(player, PROMPT.CANCE_RIDE.replace("%MASTER", whoLandByVector3(entityPosition)));
-            if (!isOp(player)) {
-                return false;
-            }
-        }
-    }
-});
-
-registerEvent("onBlockInteracted", function (/** @type {any} */ player, /** @type {any} */ block) {
-    let blockPosition = FloatPosToVector3(block.pos);
-    // 保护他人领地互交方块
-    if (!hasPermissionByVector3(player, blockPosition)) {
-        Tools.sendTip(player, PROMPT.CANCE_INTERACTION.replace("%MASTER", whoLandByVector3(blockPosition)));
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-registerEvent("onAttack", function (/** @type {any} */ player, /** @type {any} */ entity) {
-    let entityPosition = FloatPosToVector3(entity.pos);
-    // 保护他人领地生物
-    if (!hasPermissionByVector3(player, entityPosition)) {
-        Tools.sendTip(player, PROMPT.CANCE_ATTACK.replace("%MASTER", whoLandByVector3(entityPosition)));
-        if (!isOp(player)) {
-            return false;
-        }
-    }
-});
-
-
-registerEvent("onWitherBossDestroy", function (/** @type {any} */ entity, /** @type {any} */ intPos, /** @type {any} */ intPos2) {
-    // 保护他人领地不被凋零破坏
-    return false;
-});
-
-registerEvent("onLeft", function (/** @type {any} */ player) {
-    // 离开游戏退出圈地模式
-    quitEnclosure(player);
-});
 
 function saveLandConfig() {
     let obj = Object.create(null);
