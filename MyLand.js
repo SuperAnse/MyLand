@@ -9,10 +9,11 @@ var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
 var LAND_BUY_PRICE = 100;
 // 领地卖出单价
 var LAND_SELL_PRICE = 100;
-// 领地边界方块名字
-var BORDER_BLOCK_NAME = "red_flower";
+var BORDER_BLOCK_NAME = "grass_path";
 // 每人领地数量限制, 小于等于0是无限制
 var PLAYER_MAX_LAND_COUNT = -1;
+// Win10优化
+var tradDelay = new Map();
 
 var PROMPT = {
     DEFAULT_LAND_NAME: "家",
@@ -90,6 +91,33 @@ var PROMPT = {
     SEND_ENCLOSURE_TITLE: "§l§e-== §f设置领地范围 §e==-",
     SEND_ENCLOSURE_SUBTITLE_TITLE: "§l§f点击地面进行(以自身位置判断)§e下一步§f操作"
 }
+
+// 可覆盖方块
+var CHANGE_BLOCKS = [
+    "minecraft:sand",
+    "minecraft:dirt",
+    "minecraft:grass",
+    "minecraft:gravel",
+    "minecraft:crimson_nylium",
+    "minecraft:warped_nylium",
+    "minecraft:basalt",
+    "minecraft:polished_basalt",
+    "minecraft:smooth_basalt",
+    "minecraft:soul_soil",
+    "minecraft:moss_block",
+    "minecraft:magma",
+    "minecraft:netherrack",
+    "minecraft:soul_sand",
+    "minecraft:end_stone",
+    "minecraft:farmland",
+    "minecraft:podzol",
+    "minecraft:mycelium",
+    "minecraft:stone",
+    "minecraft:snow_layer",
+    "minecraft:stained_hardened_clay",
+    "minecraft:concrete",
+    "minecraft:concretePowder",
+];
 
 class Tools {
 
@@ -434,16 +462,8 @@ class Land {
      * @param {any} intPos
      */
     setBorderBlock(intPos) {
-        /*
         // @ts-ignore
-        let player = mc.getPlayer(this.master);
-        if (player !== null) {
-            let command = "setblock " + intPos.x + " " + intPos.y + " " + intPos.z + " " + BORDER_BLOCK_NAME;
-            // @ts-ignore
-            mc.runcmd("execute \"" + player.realName + "\" ~ ~ ~ " + command)
-        }*/
-        // @ts-ignore
-        mc.setBlock(intPos, "minecraft:" + BORDER_BLOCK_NAME);
+        mc.setBlock(intPos, "minecraft:" + BORDER_BLOCK_NAME, 0);
     }
 
     generateBorder() {
@@ -480,13 +500,9 @@ class Land {
         for (let i = y + 12; i > -64; i--) {
             // @ts-ignore
             let block = mc.getBlock(x, i, z, dimension);
-            if (block.id != 0) {
-                let findY = i + 1;
-                if (block.name.indexOf(BORDER_BLOCK_NAME) != -1) {
-                    findY = i;
-                }
+            if (CHANGE_BLOCKS.indexOf(block.name) != -1) {
                 // @ts-ignore
-                blockPos = mc.newIntPos(x, findY, z, dimension);
+                blockPos = mc.newIntPos(x, i, z, dimension);
                 break;
             }
         }
@@ -957,10 +973,17 @@ var listener = {
         }
     },
     "onUseItemOn": function (/** @type {any} */ player, /** @type {any} */ item, /** @type {any} */ block) {
-        // todo
         let player_real_name = player.realName;
         if (setter.has(player_real_name)) {
-            Form.sendLandForm(player);
+            // 防止Win10玩家错误触发GUI
+            let trad = tradDelay.get(player_real_name);
+            if (trad === undefined) {
+                tradDelay.set(player_real_name, "undefined");
+                setTimeout(function () {
+                    tradDelay.delete(player_real_name);
+                }, 200);
+                Form.sendLandForm(player);
+            }
         }
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地
