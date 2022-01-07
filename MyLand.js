@@ -12,7 +12,7 @@ var LAND_SELL_PRICE = 100;
 // 默认"grass_path"为泥土小径, "air"为取消
 var BORDER_BLOCK_NAME = "grass_path";
 // 每人领地数量限制, 小于等于0是无限制
-var PLAYER_MAX_LAND_COUNT = 3;
+var PLAYER_MAX_LAND_COUNT = -1;
 // 圈地最大距离限制, 避免熊孩子干服务器
 var MAX_LAND_SCOPE_DISTANCE = 256;
 // Win10优化
