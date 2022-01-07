@@ -9,11 +9,18 @@ var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
 var LAND_BUY_PRICE = 100;
 // 领地卖出单价
 var LAND_SELL_PRICE = 100;
+// 默认"grass_path"为泥土小径, "air"为取消
 var BORDER_BLOCK_NAME = "grass_path";
 // 每人领地数量限制, 小于等于0是无限制
-var PLAYER_MAX_LAND_COUNT = -1;
+var PLAYER_MAX_LAND_COUNT = 3;
+// 圈地最大距离限制, 避免熊孩子干服务器
+var MAX_LAND_SCOPE_DISTANCE = 256;
 // Win10优化
 var tradDelay = new Map();
+
+// 不要修改此选项!!!
+// Don't touch this!! 
+var serverState = false;
 
 var PROMPT = {
     DEFAULT_LAND_NAME: "家",
@@ -541,8 +548,18 @@ class Form {
                     setter.delete(player_real_name);
                     Tools.sendMessage(player, PROMPT.DIMENSION_ERROR);
                 } else {
-                    Form.sendBuyLandForm(player, end);
-                    ender.set(player_real_name, end);
+                    // 256 * 256
+                    let min_x = Math.min(start.getFloorX(), end.getFloorX());
+                    let max_x = Math.max(start.getFloorX(), end.getFloorX());
+                    let min_z = Math.min(start.getFloorZ(), end.getFloorZ());
+                    let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
+                    if ((max_x - min_x) > MAX_LAND_SCOPE_DISTANCE || (max_z - min_z) > MAX_LAND_SCOPE_DISTANCE) {
+                        player.sendMessage(PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
+                        quitEnclosure(player);
+                    } else {
+                        ender.set(player_real_name, end);
+                        Form.sendBuyLandForm(player, end);
+                    }
                 }
             }
 
@@ -950,6 +967,9 @@ var commands = {
 }
 
 var listener = {
+    "onServerStarted": function () {
+        serverState = true;
+    },
     "onPlaceBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地
@@ -1179,69 +1199,71 @@ function onEnable() {
 }
 
 function onUpdate() {
-    buildLandParticle();
-    // @ts-ignore
-    let allPlayer = mc.getOnlinePlayers();
-    for (let index = 0; index < allPlayer.length; index++) {
-        let hasUpdate = true;
-        let player = allPlayer[index];
-        let player_real_name = player.realName;
-        let playerPosition = FloatPosToVector3(player.pos);
-        let land_string = getLandString(playerPosition.getFloorX(), playerPosition.getFloorZ(), playerPosition.getDimensionId());
-        if (land_string !== null) {
-            let land = landHashMap.get(land_string);
-            if (land !== undefined) {
-                let haulBack = false;
-                if (!land.isOpen() && !isOp(player)) {
-                    // 拉回
-                    if (!land.hasPermission(player)) {
-                        let old = MOVE_CHACK_MAP.get(player_real_name);
-                        if (old !== undefined) {
-                            // 防止被囚禁
-                            let check = getLandString(old.getFloorX(), old.getFloorZ(), old.getDimensionId());
-                            if (check === null) {
-                                player.teleport(old.x, old.y, old.z, old.dimensionId);
-                                Tools.sendTip(player, PROMPT.REFUSED_WALK_IN.replace("%MASTER", land.getMaster()));
-                                haulBack = true;
+    if (serverState) {
+        buildLandParticle();
+        // @ts-ignore
+        let allPlayer = mc.getOnlinePlayers();
+        for (let index = 0; index < allPlayer.length; index++) {
+            let hasUpdate = true;
+            let player = allPlayer[index];
+            let player_real_name = player.realName;
+            let playerPosition = FloatPosToVector3(player.pos);
+            let land_string = getLandString(playerPosition.getFloorX(), playerPosition.getFloorZ(), playerPosition.getDimensionId());
+            if (land_string !== null) {
+                let land = landHashMap.get(land_string);
+                if (land !== undefined) {
+                    let haulBack = false;
+                    if (!land.isOpen() && !isOp(player)) {
+                        // 拉回
+                        if (!land.hasPermission(player)) {
+                            let old = MOVE_CHACK_MAP.get(player_real_name);
+                            if (old !== undefined) {
+                                // 防止被囚禁
+                                let check = getLandString(old.getFloorX(), old.getFloorZ(), old.getDimensionId());
+                                if (check === null) {
+                                    player.teleport(old.x, old.y, old.z, old.dimensionId);
+                                    Tools.sendTip(player, PROMPT.REFUSED_WALK_IN.replace("%MASTER", land.getMaster()));
+                                    haulBack = true;
+                                    hasUpdate = false;
+                                }
                             }
                         }
-                        hasUpdate = false;
                     }
-                }
-                if (!haulBack) {
-                    let delay = tipDelay.get(player_real_name);
-                    if (!playerInLand.has(player_real_name) || playerInLand.get(player_real_name) !== land) {
-                        Tools.sendTip(player, PROMPT.WALK_IN.replace("%MASTER", land.getMaster()));
-                        playerInLand.set(player_real_name, land);
-                        if (delay === undefined || delay < 7) {
-                            tipDelay.set(player_real_name, 7);
-                        }
-                    } else {
-                        if (delay === undefined) {
-                            Tools.sendTip(player, "§l" + (land.hasPermission(player) ? "§7" : "§e") + land.getTitle());
-                        }
-                    }
-                    if (delay !== undefined) {
-                        if (delay > 0) {
-                            tipDelay.set(player_real_name, delay - 1);
+                    if (!haulBack) {
+                        let delay = tipDelay.get(player_real_name);
+                        if (!playerInLand.has(player_real_name) || playerInLand.get(player_real_name) !== land) {
+                            Tools.sendTip(player, PROMPT.WALK_IN.replace("%MASTER", land.getMaster()));
+                            playerInLand.set(player_real_name, land);
+                            if (delay === undefined || delay < 7) {
+                                tipDelay.set(player_real_name, 7);
+                            }
                         } else {
-                            tipDelay.delete(player_real_name);
+                            if (delay === undefined) {
+                                Tools.sendTip(player, "§l" + (land.hasPermission(player) ? "§7" : "§e") + land.getTitle());
+                            }
+                        }
+                        if (delay !== undefined) {
+                            if (delay > 0) {
+                                tipDelay.set(player_real_name, delay - 1);
+                            } else {
+                                tipDelay.delete(player_real_name);
+                            }
                         }
                     }
                 }
+            } else if (playerInLand.has(player_real_name)) {
+                let land = playerInLand.get(player_real_name);
+                if (land !== undefined) {
+                    Tools.sendTip(player, PROMPT.WALK_OUT.replace("%MASTER", land.getMaster()));
+                    playerInLand.delete(player_real_name);
+                }
             }
-        } else if (playerInLand.has(player_real_name)) {
-            let land = playerInLand.get(player_real_name);
-            if (land !== undefined) {
-                Tools.sendTip(player, PROMPT.WALK_OUT.replace("%MASTER", land.getMaster()));
-                playerInLand.delete(player_real_name);
-            }
-        }
-        // 更新位置, 以便获取可拉回位置
-        if (hasUpdate) {
-            let old = MOVE_CHACK_MAP.get(player_real_name);
-            if (old === undefined || !old.equals(playerPosition)) {
-                MOVE_CHACK_MAP.set(player_real_name, playerPosition);
+            // 更新位置, 以便获取可拉回位置
+            if (hasUpdate) {
+                let old = MOVE_CHACK_MAP.get(player_real_name);
+                if (old === undefined || !old.equals(playerPosition)) {
+                    MOVE_CHACK_MAP.set(player_real_name, playerPosition);
+                }
             }
         }
     }
@@ -1261,19 +1283,25 @@ function buildLandParticle() {
             let max_x = Math.max(start.getFloorX(), end.getFloorX());
             let min_z = Math.min(start.getFloorZ(), end.getFloorZ());
             let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
-            let y = start.getFloorY();
-            let dimensionId = start.getDimensionId();
-            for (let x = min_x; x <= max_x; x++) {
-                // @ts-ignore
-                mc.spawnParticle(x + 0.5, y + 0.2, min_z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
-                // @ts-ignore
-                mc.spawnParticle(x + 0.5, y + 0.2, max_z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
-            }
-            for (let z = min_z; z <= max_z; z++) {
-                // @ts-ignore
-                mc.spawnParticle(min_x + 0.5, y + 0.2, z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
-                // @ts-ignore
-                mc.spawnParticle(max_x + 0.5, y + 0.2, z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
+
+            if ((max_x - min_x) > MAX_LAND_SCOPE_DISTANCE || (max_z - min_z) > MAX_LAND_SCOPE_DISTANCE) {
+                player.sendMessage(PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
+                quitEnclosure(player);
+            } else {
+                let y = start.getFloorY();
+                let dimensionId = start.getDimensionId();
+                for (let x = min_x; x <= max_x; x++) {
+                    // @ts-ignore
+                    mc.spawnParticle(x + 0.5, y + 0.2, min_z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
+                    // @ts-ignore
+                    mc.spawnParticle(x + 0.5, y + 0.2, max_z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
+                }
+                for (let z = min_z; z <= max_z; z++) {
+                    // @ts-ignore
+                    mc.spawnParticle(min_x + 0.5, y + 0.2, z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
+                    // @ts-ignore
+                    mc.spawnParticle(max_x + 0.5, y + 0.2, z + 0.5, dimensionId, "minecraft:falling_dust_top_snow_particle");
+                }
             }
         }
     });
