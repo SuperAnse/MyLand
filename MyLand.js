@@ -557,7 +557,7 @@ class Form {
                     let min_z = Math.min(start.getFloorZ(), end.getFloorZ());
                     let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
                     if ((max_x - min_x) > MAX_LAND_SCOPE_DISTANCE || (max_z - min_z) > MAX_LAND_SCOPE_DISTANCE) {
-                        Tools.sendMessage(player, PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
+                        Tools.sendMessage(player, "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
                         quitEnclosure(player);
                     } else {
                         ender.set(player_real_name, end);
@@ -1288,7 +1288,7 @@ function buildLandParticle() {
             let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
 
             if ((max_x - min_x) > MAX_LAND_SCOPE_DISTANCE || (max_z - min_z) > MAX_LAND_SCOPE_DISTANCE) {
-                Tools.sendMessage(player, PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
+                Tools.sendMessage(player, "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
                 quitEnclosure(player);
             } else {
                 let y = start.getFloorY();
