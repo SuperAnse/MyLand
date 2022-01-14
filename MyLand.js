@@ -1,3 +1,6 @@
+//LiteXLoader Dev Helper
+/// <reference path="c:\Users\18143\Desktop\lxl server/Library/JS/Api.js" /> 
+
 var PLUGIN_NAME = "§l[系统] ";
 // @ts-ignore
 var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
@@ -129,15 +132,15 @@ var CHANGE_BLOCKS = [
 class Tools {
 
     /**
-     * @param {any} player
+     * @param {Player} player
      * @param {string} message
      */
     static sendMessage(player, message) {
-        player.tell(PLUGIN_NAME + message);
+        player.tell(PLUGIN_NAME + message, 0);
     }
 
     /**
-     * @param {any} player
+     * @param {Player} player
      * @param {string} message
      */
     static sendPopup(player, message) {
@@ -145,7 +148,7 @@ class Tools {
     }
 
     /**
-     * @param {any} player
+     * @param {Player} player
      * @param {string} message
      */
     static sendTip(player, message) {
@@ -349,7 +352,7 @@ class Land {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     setMaster(player) {
         this.master = player.realName;
@@ -372,7 +375,7 @@ class Land {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     addFriend(player) {
         let player_real_name = player.realName;
@@ -391,7 +394,7 @@ class Land {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     isMaster(player) {
         let player_real_name = player.realName;
@@ -406,7 +409,7 @@ class Land {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     isFriend(player) {
         let player_real_name = player.realName;
@@ -451,7 +454,7 @@ class Land {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     hasPermission(player) {
         if (this.isMaster(player)) {
@@ -520,7 +523,7 @@ class Land {
 class Form {
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     static sendLandForm(player) {
         let player_real_name = player.realName;
@@ -554,7 +557,7 @@ class Form {
                     let min_z = Math.min(start.getFloorZ(), end.getFloorZ());
                     let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
                     if ((max_x - min_x) > MAX_LAND_SCOPE_DISTANCE || (max_z - min_z) > MAX_LAND_SCOPE_DISTANCE) {
-                        player.sendMessage(PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
+                        Tools.sendMessage(player, PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
                         quitEnclosure(player);
                     } else {
                         ender.set(player_real_name, end);
@@ -571,7 +574,7 @@ class Form {
             simple.addButton(PROMPT.TITLE_MY_LAND, "textures/ui/dressing_room_animation");
             simple.addButton(PROMPT.TITLE_FRIEND_LAND, "textures/ui/dressing_room_skins");
             simple.addButton(PROMPT.TITLE_ENCLOSURE, "textures/ui/icon_new");
-            player.sendForm(simple, function (/** @type {any} */ player, /** @type {any} */ buttonId) {
+            player.sendForm(simple, function (/** @type {Player} */ player, /** @type {any} */ buttonId) {
                 let player_real_name = player.realName;
                 if (buttonId === undefined) {
                     return;
@@ -596,7 +599,7 @@ class Form {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     static sendLandListForm(player) {
         // @ts-ignore
@@ -610,7 +613,7 @@ class Form {
             simple.addButton(land.getTitle() + "\nMaster: " + land.getMaster(), "textures/ui/pointer");
             id += 1;
         });
-        player.sendForm(simple, function (/** @type {any} */ player, /** @type {string} */ buttonId) {
+        player.sendForm(simple, function (/** @type {Player} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -624,7 +627,7 @@ class Form {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     static sendMyLandsForm(player) {
         let player_real_name = player.realName;
@@ -643,7 +646,7 @@ class Form {
             }
         }
 
-        player.sendForm(simple, function (/** @type {any} */ player, /** @type {string} */ buttonId) {
+        player.sendForm(simple, function (/** @type {Player} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -660,13 +663,13 @@ class Form {
                 formAdmin.addButton(PROMPT.SUBTITLE_TITLE_TRANSFER, "textures/ui/dressing_room_customization");
                 formAdmin.addButton(PROMPT.SUBTITLE_TITLE_SELL, "textures/ui/storexblsignin");
 
-                player.sendForm(formAdmin, function (/** @type {any} */ player, /** @type {any} */ buttonId) {
+                player.sendForm(formAdmin, function (/** @type {Player} */ player, /** @type {any} */ buttonId) {
                     if (buttonId === undefined) {
                         return;
                     }
                     switch (buttonId) {
                         case 0:
-                            player.sendModalForm(PROMPT.SETTING_DOOR_TITLE, PROMPT.SETTING_DOOR_CONTENT, PROMPT.SETTING_DOOR_TRUE, PROMPT.SETTING_DOOR_FALSE, function (/** @type {any} */ player, /** @type {any} */ bool) {
+                            player.sendModalForm(PROMPT.SETTING_DOOR_TITLE, PROMPT.SETTING_DOOR_CONTENT, PROMPT.SETTING_DOOR_TRUE, PROMPT.SETTING_DOOR_FALSE, function (/** @type {Player} */ player, /** @type {any} */ bool) {
                                 if (bool === undefined) {
                                     return;
                                 }
@@ -685,7 +688,7 @@ class Form {
                             let change = mc.newCustomForm();
                             change.setTitle(PROMPT.SETTING_RENAME_TITLE);
                             change.addInput(PROMPT.SETTING_RENAME_INPUT, "Home name", "");
-                            player.sendForm(change, function (/** @type {any} */ player, /** @type {string[]} */ data) {
+                            player.sendForm(change, function (/** @type {Player} */ player, /** @type {string[]} */ data) {
                                 if (data === undefined) {
                                     return;
                                 }
@@ -718,7 +721,7 @@ class Form {
                                 myFriends.set(id, friend_name);
                                 id += 1;
                             });
-                            player.sendForm(friendSystemForm, function (/** @type {any} */ player, /** @type {number} */ buttonId) {
+                            player.sendForm(friendSystemForm, function (/** @type {Player} */ player, /** @type {number} */ buttonId) {
                                 if (buttonId === undefined) {
                                     return;
                                 }
@@ -736,7 +739,7 @@ class Form {
                                     }
                                     addFriendForm.addDropdown(PROMPT.SETTING_ADD_FRIEND_SELECT_PLAYER, items, 0);
 
-                                    player.sendForm(addFriendForm, function (/** @type {any} */ player, /** @type {(string | number)[]} */ data) {
+                                    player.sendForm(addFriendForm, function (/** @type {Player} */ player, /** @type {(string | number)[]} */ data) {
                                         if (data === undefined) {
                                             return;
                                         }
@@ -754,7 +757,7 @@ class Form {
                                     });
                                 } else {
                                     let friend_name = myFriends.get(buttonId - 1);
-                                    player.sendModalForm(PROMPT.SETTING_CONFIRM, PROMPT.SETTING_DEL_FRIEND_CONTENT.replace("%FRIEND_NAME", friend_name), PROMPT.SETTING_DEL_FRIEND_TRUE, PROMPT.SETTING_DEL_FRIEND_FALSE, function (/** @type {any} */ player, /** @type {any} */ bool) {
+                                    player.sendModalForm(PROMPT.SETTING_CONFIRM, PROMPT.SETTING_DEL_FRIEND_CONTENT.replace("%FRIEND_NAME", friend_name), PROMPT.SETTING_DEL_FRIEND_TRUE, PROMPT.SETTING_DEL_FRIEND_FALSE, function (/** @type {Player} */ player, /** @type {any} */ bool) {
                                         if (bool === undefined) {
                                             return;
                                         }
@@ -774,7 +777,7 @@ class Form {
                             let make_over = mc.newCustomForm();
                             make_over.setTitle(PROMPT.SETTING_MAKE_OVER_TITLE);
                             make_over.addInput(PROMPT.SETTING_MAKE_OVER_INPUT, "", "");
-                            player.sendForm(make_over, function (/** @type {any} */ player, /** @type {string[]} */ data) {
+                            player.sendForm(make_over, function (/** @type {Player} */ player, /** @type {string[]} */ data) {
                                 if (data === undefined) {
                                     return;
                                 }
@@ -793,7 +796,7 @@ class Form {
                             break;
                         case 5:
                             let money_count = land.getStartVector2().squared(land.getEndVector2()) * LAND_SELL_PRICE;
-                            player.sendModalForm(PROMPT.SETTING_CONFIRM, PROMPT.SETTING_SELL_CONTENT.replace("%MONEY", "" + Math.floor(money_count)).replace("%LAND_TITLE", land.getTitle()), PROMPT.SETTING_SELL_TRUE, PROMPT.SETTING_SELL_FALSE, function (/** @type {any} */ player, /** @type {any} */ bool) {
+                            player.sendModalForm(PROMPT.SETTING_CONFIRM, PROMPT.SETTING_SELL_CONTENT.replace("%MONEY", "" + Math.floor(money_count)).replace("%LAND_TITLE", land.getTitle()), PROMPT.SETTING_SELL_TRUE, PROMPT.SETTING_SELL_FALSE, function (/** @type {Player} */ player, /** @type {any} */ bool) {
                                 if (bool === undefined) {
                                     return;
                                 }
@@ -822,7 +825,7 @@ class Form {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      */
     static sendFriendsLandForm(player) {
         let player_real_name = player.realName;
@@ -839,7 +842,7 @@ class Form {
                 id += 1;
             }
         });
-        player.sendForm(simple, function (/** @type {any} */ player, /** @type {string} */ buttonId) {
+        player.sendForm(simple, function (/** @type {Player} */ player, /** @type {string} */ buttonId) {
             if (buttonId === undefined) {
                 return;
             }
@@ -853,7 +856,7 @@ class Form {
     };
 
     /**
-     * @param {any} player
+     * @param {Player} player
      * @param {Vector3} end
      */
     static sendBuyLandForm(player, end) {
@@ -872,7 +875,7 @@ class Form {
         simple.addButton(PROMPT.BUY_LAND_BUY, "textures/ui/MCoin");
         simple.addButton(PROMPT.BUY_LAND_CANCE, "textures/ui/icon_trash");
 
-        player.sendForm(simple, function (/** @type {any} */ player, /** @type {any} */ buttonId) {
+        player.sendForm(simple, function (/** @type {Player} */ player, /** @type {any} */ buttonId) {
             let player_real_name = player.realName;
             ender.delete(player_real_name);
             if (buttonId === undefined) {
@@ -902,7 +905,7 @@ class Form {
                         let change = mc.newCustomForm();
                         change.setTitle(PROMPT.RENAME_NEW_LAND_TITLE);
                         change.addInput(PROMPT.RENAME_NEW_LAND_INPUT, "Home name", PROMPT.DEFAULT_RENAME_NEW_LAND_NAME.replace("%MASTER", player_real_name));
-                        player.sendForm(change, function (/** @type {any} */ player, /** @type {string[]} */ data) {
+                        player.sendForm(change, function (/** @type {Player} */ player, /** @type {string[]} */ data) {
                             if (data === undefined) {
                                 return;
                             }
@@ -932,11 +935,11 @@ class Form {
 }
 
 var commands = {
-    "land": ["领地指令", function (/** @type {any} */ player, /** @type {any} */ args) {
+    "land": ["领地指令", function (/** @type {Player} */ player, /** @type {any} */ args) {
         Form.sendLandForm(player);
         return false;
     }],
-    "landlist": ["领地列表", function (/** @type {any} */ player, /** @type {any} */ args) {
+    "landlist": ["领地列表", function (/** @type {Player} */ player, /** @type {any} */ args) {
         //todo
         if (isOp(player)) {
             Form.sendLandListForm(player);
@@ -945,11 +948,11 @@ var commands = {
         }
         return false;
     }],
-    "myland": ["我的领地", function (/** @type {any} */ player, /** @type {any} */ args) {
+    "myland": ["我的领地", function (/** @type {Player} */ player, /** @type {any} */ args) {
         Form.sendMyLandsForm(player);
         return false;
     }],
-    "removeland": ["删除脚下领地", function (/** @type {any} */ player, /** @type {any} */ args) {
+    "removeland": ["删除脚下领地", function (/** @type {Player} */ player, /** @type {any} */ args) {
         if (isOp(player)) {
             let playerPos = FloatPosToVector3(player.pos);
             let land_string = getLandString(playerPos.getFloorX(), playerPos.getFloorZ(), playerPos.getDimensionId());
@@ -970,7 +973,7 @@ var listener = {
     "onServerStarted": function () {
         serverState = true;
     },
-    "onPlaceBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
+    "onPlaceBlock": function (/** @type {Player} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地
         if (!hasPermissionByVector3(player, blockPosition)) {
@@ -982,7 +985,7 @@ var listener = {
             }
         }
     },
-    "onDestroyBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
+    "onDestroyBlock": function (/** @type {Player} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地
         if (!hasPermissionByVector3(player, blockPosition)) {
@@ -992,7 +995,7 @@ var listener = {
             }
         }
     },
-    "onUseItemOn": function (/** @type {any} */ player, /** @type {any} */ item, /** @type {any} */ block) {
+    "onUseItemOn": function (/** @type {Player} */ player, /** @type {any} */ item, /** @type {any} */ block) {
         let player_real_name = player.realName;
         if (setter.has(player_real_name)) {
             // 防止Win10玩家错误触发GUI
@@ -1014,7 +1017,7 @@ var listener = {
             }
         }
     },
-    "onUseFrameBlock": function (/** @type {any} */ player, /** @type {any} */ block) {
+    "onUseFrameBlock": function (/** @type {Player} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地展示框
         if (!hasPermissionByVector3(player, blockPosition)) {
@@ -1030,7 +1033,7 @@ var listener = {
         let to_land_string = whoLand(Math.floor(intPos.x), Math.floor(intPos.z), intPos.dimid);
         // 保护他人领地不被外来流体破坏
         if (to_land_string !== null) {
-            if (from_land_string !== to_land_string) {
+            if (from_land_string === null || to_land_string !== from_land_string) {
                 return false;
             }
         }
@@ -1056,7 +1059,7 @@ var listener = {
             return false;
         }
     },
-    "onOpenContainer": function (/** @type {any} */ player, /** @type {any} */ block) {
+    "onOpenContainer": function (/** @type {Player} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地容器
         if (!hasPermissionByVector3(player, blockPosition)) {
@@ -1083,7 +1086,7 @@ var listener = {
             }
         }
     },
-    "onBlockInteracted": function (/** @type {any} */ player, /** @type {any} */ block) {
+    "onBlockInteracted": function (/** @type {Player} */ player, /** @type {any} */ block) {
         let blockPosition = FloatPosToVector3(block.pos);
         // 保护他人领地互交方块
         if (!hasPermissionByVector3(player, blockPosition)) {
@@ -1093,7 +1096,7 @@ var listener = {
             }
         }
     },
-    "onAttack": function (/** @type {any} */ player, /** @type {any} */ entity) {
+    "onAttack": function (/** @type {Player} */ player, /** @type {any} */ entity) {
         let entityPosition = FloatPosToVector3(entity.pos);
         // 保护他人领地生物
         if (!hasPermissionByVector3(player, entityPosition)) {
@@ -1126,7 +1129,7 @@ var playerInLand = new Map();
 /** @type {Map<string, number>} */
 var tipDelay = new Map();
 
-/** @param {any} player */
+/** @param {Player} player */
 function isOp(player) {
     return player.permLevel == 1;
 }
@@ -1285,7 +1288,7 @@ function buildLandParticle() {
             let max_z = Math.max(start.getFloorZ(), end.getFloorZ());
 
             if ((max_x - min_x) > MAX_LAND_SCOPE_DISTANCE || (max_z - min_z) > MAX_LAND_SCOPE_DISTANCE) {
-                player.sendMessage(PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
+                Tools.sendMessage(player, PLUGIN_NAME + "§c领地过大, 平面范围不能超过 §f" + MAX_LAND_SCOPE_DISTANCE + " * " + MAX_LAND_SCOPE_DISTANCE + " §c!");
                 quitEnclosure(player);
             } else {
                 let y = start.getFloorY();
@@ -1316,7 +1319,7 @@ function saveLandConfig() {
 }
 
 /**
- * @param {any} player
+ * @param {Player} player
  */
 function quitEnclosure(player) {
     let player_real_name = player.realName;
@@ -1406,7 +1409,7 @@ function getNearLand(intX, intZ, dimensionId) {
 }
 
 /**
- * @param {any} player
+ * @param {Player} player
  * @param {number} [x]
  * @param {number} [z]
  * @param {number} [dimensionId]
@@ -1420,7 +1423,7 @@ function hasPermission(player, x, z, dimensionId) {
 }
 
 /**
- * @param {any} player
+ * @param {Player} player
  * @param {Vector3} [vector3]
  */
 function hasPermissionByVector3(player, vector3) {
@@ -1428,7 +1431,7 @@ function hasPermissionByVector3(player, vector3) {
 }
 
 /**
- * @param {any} player
+ * @param {Player} player
  */
 function isOverlap(player) {
     let player_real_name = player.realName;
@@ -1467,7 +1470,7 @@ function FloatPosToVector3(floatPos) {
 }
 
 /**
- *  @param {any} player
+ *  @param {Player} player
  *  @returns {any}
  */
 function myMoney(player) {
@@ -1476,7 +1479,7 @@ function myMoney(player) {
 }
 
 /**
- * @param {any} player
+ * @param {Player} player
  * @param {number} value
  */
 function addMoney(player, value) {
@@ -1485,7 +1488,7 @@ function addMoney(player, value) {
 }
 
 /**
- * @param {any} player
+ * @param {Player} player
  * @param {number} value
  */
 function reduceMoney(player, value) {
