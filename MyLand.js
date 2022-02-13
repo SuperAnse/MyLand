@@ -8,6 +8,9 @@ var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
 // by: anseEND
 // 联系QQ: 2335607935
 
+// 经济插件类型 "llmoney" 或者 "score"
+var ECONOMY_TYPE = "score";
+
 // 领地购买单价
 var LAND_BUY_PRICE = 100;
 // 领地卖出单价
@@ -1187,8 +1190,7 @@ function onEnable() {
     warn("=============== 食用方法 ===============");
     // @register-commands
     for (let command_name in commands) {
-        // @ts-ignore
-        mc.regPlayerCmd(command_name, commands[command_name][0], commands[command_name][1]);
+        mc.regPlayerCmd(command_name, commands[command_name][0], commands[command_name][1], 0);
         warn("| " + commands[command_name][0] + ": /" + command_name);
     }
     warn("========================================");
@@ -1204,7 +1206,6 @@ function onEnable() {
 function onUpdate() {
     if (serverState) {
         buildLandParticle();
-        // @ts-ignore
         let allPlayer = mc.getOnlinePlayers();
         for (let index = 0; index < allPlayer.length; index++) {
             let hasUpdate = true;
@@ -1474,8 +1475,13 @@ function FloatPosToVector3(floatPos) {
  *  @returns {any}
  */
 function myMoney(player) {
-    // @ts-ignore
-    return money.get(player.xuid);
+    if (ECONOMY_TYPE === "llmoney") {
+        // @ts-ignore
+        return money.get(player.xuid);
+    } else {
+        // @ts-ignore
+        return ob.getScore(player);
+    }
 }
 
 /**
@@ -1483,8 +1489,13 @@ function myMoney(player) {
  * @param {number} value
  */
 function addMoney(player, value) {
-    // @ts-ignore
-    money.add(player.xuid, Math.floor(value));
+    if (ECONOMY_TYPE === "llmoney") {
+        // @ts-ignore
+        money.add(player.xuid, Math.floor(value));
+    } else {
+        // @ts-ignore
+        ob.addScore(player, Math.floor(value))
+    }
 }
 
 /**
@@ -1492,6 +1503,11 @@ function addMoney(player, value) {
  * @param {number} value
  */
 function reduceMoney(player, value) {
-    // @ts-ignore
-    money.reduce(player.xuid, Math.floor(value));
+    if (ECONOMY_TYPE === "llmoney") {
+        // @ts-ignore
+        money.reduce(player.xuid, Math.floor(value));
+    } else {
+        // @ts-ignore
+        ob.reduceScore(player, Math.floor(value));
+    }
 }
