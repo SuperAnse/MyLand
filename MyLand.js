@@ -10,6 +10,10 @@ var CONFIG = data.openConfig("plugins/MyLand/Config.json", "json");
 
 // 经济插件类型 "llmoney" 或者 "score"
 var ECONOMY_TYPE = "score";
+// 如果使用计分板的话.........
+var SCORE_NAME = "money"; // 绑定计分项 (score)
+// scoreboard objectives add money dummy "My Money"
+// scoreboard players add anseEND01 money 1200000
 
 // 领地购买单价
 var LAND_BUY_PRICE = 100;
@@ -1480,7 +1484,7 @@ function myMoney(player) {
         return money.get(player.xuid);
     } else {
         // @ts-ignore
-        return ob.getScore(player);
+        return player.getScore(SCORE_NAME);
     }
 }
 
@@ -1494,7 +1498,7 @@ function addMoney(player, value) {
         money.add(player.xuid, Math.floor(value));
     } else {
         // @ts-ignore
-        ob.addScore(player, Math.floor(value))
+        player.addScore(SCORE_NAME, Math.floor(value))
     }
 }
 
@@ -1508,6 +1512,6 @@ function reduceMoney(player, value) {
         money.reduce(player.xuid, Math.floor(value));
     } else {
         // @ts-ignore
-        ob.reduceScore(player, Math.floor(value));
+        player.reduceScore(SCORE_NAME, Math.floor(value));
     }
 }
